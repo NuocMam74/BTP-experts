@@ -1,0 +1,49 @@
+{
+  "slug": "expert-comptable-btp",
+  "name": "Expert-comptable spécialisé BTP",
+  "tagline": "TVA travaux, autoliquidation BTP, loi 1975, situations, paie et compte prorata",
+  "version": "0.3.0",
+  "model": "local-model",
+  "monthly_price_eur": 79,
+  "accepted_documents": [
+    "pdf:situation_travaux",
+    "pdf:facture_sous_traitant",
+    "pdf:dc4",
+    "pdf:ccap",
+    "pdf:caution_bancaire",
+    "pdf:balance_comptable",
+    "xlsx:fec",
+    "pdf:bulletin_paie",
+    "pdf:dsn",
+    "pdf:attestation_1300_1301"
+  ],
+  "skills": [
+    { "id": "calculer_tva_travaux", "label": "Déterminer le taux de TVA applicable", "output_formats": ["docx", "pdf"] },
+    { "id": "controle_autoliquidation_btp", "label": "Vérifier l'autoliquidation BTP", "output_formats": ["docx", "pdf"] },
+    { "id": "controle_situation_travaux", "label": "Contrôler comptablement une situation de travaux", "output_formats": ["xlsx", "pdf"] },
+    { "id": "controle_sous_traitance_1975", "label": "Contrôler une sous-traitance loi 1975", "output_formats": ["docx", "pdf"] },
+    { "id": "compte_prorata", "label": "Ventiler un compte prorata", "output_formats": ["xlsx", "pdf"] },
+    { "id": "reconnaissance_revenu_avancement", "label": "Reconnaître le revenu à l'avancement (PCG/IFRS 15)", "output_formats": ["xlsx", "docx"] },
+    { "id": "controle_paie_btp", "label": "Contrôler la paie BTP (CIBTP, indemnités, conventions)", "output_formats": ["xlsx", "docx"] }
+  ],
+  "tools": [
+    { "name": "calculer_tva_travaux", "type": "javascript_function" },
+    { "name": "rag_search", "type": "vector_search", "namespace": "expert-comptable-btp" },
+    {
+      "name": "generer_rapport",
+      "type": "javascript_function",
+      "description": "Génère un livrable documentaire (note TVA, contrôle autoliquidation, contrôle situation, ventilation prorata, contrôle paie, présentation au gérant) à partir d'un contenu Markdown.",
+      "input_schema": {
+        "titre": "string",
+        "contenu": "string (markdown)",
+        "format": "docx | pdf | xlsx | pptx",
+        "agent": "string (slug agent)",
+        "metadata": "object (optionnel : entité, dossier, indice, date, signataire DEC prévu)"
+      },
+      "supported_formats": ["docx", "pdf", "xlsx", "pptx"]
+    }
+  ],
+  "default_output_formats": ["docx", "pdf", "xlsx", "pptx"],
+  "corpus_namespace": "expert-comptable-btp",
+  "system_prompt_path": "./system.md"
+}

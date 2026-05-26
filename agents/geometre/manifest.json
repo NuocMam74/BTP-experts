@@ -1,0 +1,69 @@
+{
+  "slug": "geometre",
+  "name": "Géomètre-expert",
+  "tagline": "Bornage, surfaces légales, servitudes, division parcellaire, cubatures et DT-DICT",
+  "version": "0.3.0",
+  "model": "local-model",
+  "monthly_price_eur": 59,
+  "accepted_documents": [
+    "pdf:plan_topographique",
+    "pdf:extrait_cadastral",
+    "pdf:pv_bornage",
+    "pdf:titre_propriete",
+    "pdf:plan_division",
+    "pdf:rapport_dt_dict"
+  ],
+  "skills": [
+    {
+      "id": "analyser_bornage",
+      "label": "Analyser un PV de bornage",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "calculer_surfaces_legales",
+      "label": "Calculer surfaces légales (Carrez / Boutin)",
+      "output_formats": ["pdf", "xlsx"]
+    },
+    {
+      "id": "analyse_servitudes",
+      "label": "Analyser les servitudes d'une parcelle",
+      "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "division_parcellaire",
+      "label": "Vérifier faisabilité d'une division",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "cubatures",
+      "label": "Calculer déblais / remblais",
+      "output_formats": ["xlsx", "pdf"]
+    },
+    {
+      "id": "dt_dict",
+      "label": "Aide DT-DICT",
+      "output_formats": ["docx", "pdf"]
+    }
+  ],
+  "tools": [
+    { "name": "calculer_cubatures", "type": "javascript_function" },
+    { "name": "calc_surfaces", "type": "javascript_function" },
+    { "name": "rag_search", "type": "vector_search", "namespace": "geometre" },
+    {
+      "name": "generer_rapport",
+      "type": "javascript_function",
+      "description": "Génère un livrable documentaire (PV de bornage, attestation surfaces, note division, dossier DT-DICT, convention de servitude) à partir d'un contenu Markdown.",
+      "input_schema": {
+        "titre": "string",
+        "contenu": "string (markdown)",
+        "format": "docx | pdf | xlsx | pptx",
+        "agent": "string (slug agent)",
+        "metadata": "object (optionnel : parcelles, commune, OGE signataire prévu, date)"
+      },
+      "supported_formats": ["docx", "pdf", "xlsx", "pptx"]
+    }
+  ],
+  "default_output_formats": ["docx", "pdf", "xlsx", "pptx"],
+  "corpus_namespace": "geometre",
+  "system_prompt_path": "./system.md"
+}

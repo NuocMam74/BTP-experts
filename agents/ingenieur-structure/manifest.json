@@ -1,0 +1,72 @@
+{
+  "slug": "ingenieur-structure",
+  "name": "Ingénieur structure",
+  "tagline": "Eurocodes 0 à 8, descentes de charges, ferraillage, géotechnique et sismique",
+  "version": "0.3.0",
+  "model": "local-model",
+  "monthly_price_eur": 89,
+  "accepted_documents": [
+    "pdf:note_de_calcul",
+    "pdf:plan_coffrage",
+    "pdf:plan_ferraillage",
+    "pdf:rapport_geotechnique",
+    "pdf:cctp_structure"
+  ],
+  "skills": [
+    {
+      "id": "verifier_descente_charges",
+      "label": "Vérifier une descente de charges",
+      "output_formats": ["xlsx", "pdf"]
+    },
+    {
+      "id": "controle_note_calcul",
+      "label": "Contrôler une note de calcul",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "analyse_plan_ferraillage",
+      "label": "Analyser un plan de ferraillage",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "predim_poutre_poteau_dalle",
+      "label": "Pré-dimensionner poutre / poteau / dalle / voile",
+      "output_formats": ["xlsx", "docx"]
+    },
+    {
+      "id": "analyse_rapport_geotechnique",
+      "label": "Analyser un rapport géotechnique G1-G5",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "zonage_sismique",
+      "label": "Déterminer zone et catégorie sismique (EC8)",
+      "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "points_singuliers",
+      "label": "Détecter et qualifier les points singuliers structure",
+      "output_formats": ["pdf", "docx"]
+    }
+  ],
+  "tools": [
+    { "name": "predim_beton_arme", "type": "javascript_function" },
+    { "name": "rag_search", "type": "vector_search", "namespace": "ingenieur-structure" },
+    {
+      "name": "generer_rapport",
+      "type": "javascript_function",
+      "description": "Génère un livrable documentaire (rapport de contrôle, descente de charges, note pré-dim, synthèse géotech, classement sismique) à partir d'un contenu Markdown.",
+      "input_schema": {
+        "titre": "string",
+        "contenu": "string (markdown)",
+        "format": "docx | pdf | xlsx | pptx",
+        "agent": "string (slug agent)",
+        "metadata": "object (optionnel : projet, BE référence, indice, date, hypothèses)"
+      },
+      "supported_formats": ["docx", "pdf", "xlsx", "pptx"]
+    }
+  ],
+  "default_output_formats": ["docx", "pdf", "xlsx", "pptx"],
+  "corpus_namespace": "ingenieur-structure",
+  "system_prompt_path": "./system.md"
+}

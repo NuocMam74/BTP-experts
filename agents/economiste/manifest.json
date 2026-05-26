@@ -1,0 +1,67 @@
+{
+  "slug": "economiste",
+  "name": "Économiste de la construction",
+  "tagline": "Métré, chiffrage DPGF, sous-détails de prix, ratios m² et comparaison d'offres",
+  "version": "0.3.0",
+  "model": "local-model",
+  "monthly_price_eur": 59,
+  "accepted_documents": [
+    "pdf:cctp",
+    "pdf:dpgf",
+    "pdf:plans_cotes",
+    "pdf:offre_entreprise",
+    "xlsx:dpgf"
+  ],
+  "skills": [
+    {
+      "id": "metre_quantitatif",
+      "label": "Métré quantitatif depuis plans",
+      "output_formats": ["xlsx", "pdf"]
+    },
+    {
+      "id": "chiffrer_dpgf",
+      "label": "Chiffrer une DPGF",
+      "output_formats": ["xlsx", "pdf"]
+    },
+    {
+      "id": "sous_detail_prix",
+      "label": "Sous-détail de prix",
+      "output_formats": ["xlsx", "docx"]
+    },
+    {
+      "id": "comparer_offres",
+      "label": "Comparer des offres entreprises",
+      "output_formats": ["xlsx", "pdf", "pptx"]
+    },
+    {
+      "id": "reviser_prix",
+      "label": "Réviser un prix (indices BT/TP)",
+      "output_formats": ["xlsx", "docx"]
+    },
+    {
+      "id": "ratio_m2",
+      "label": "Estimation rapide au m² SDP",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    }
+  ],
+  "tools": [
+    { "name": "ratio_m2", "type": "javascript_function" },
+    { "name": "rag_search", "type": "vector_search", "namespace": "economiste" },
+    {
+      "name": "generer_rapport",
+      "type": "javascript_function",
+      "description": "Génère un livrable documentaire (DPGF, métré, sous-détail, comparatif d'offres, présentation budget) à partir d'un contenu Markdown.",
+      "input_schema": {
+        "titre": "string",
+        "contenu": "string (markdown)",
+        "format": "docx | pdf | xlsx | pptx",
+        "agent": "string (slug agent)",
+        "metadata": "object (optionnel : projet, phase, indice prix, date)"
+      },
+      "supported_formats": ["docx", "pdf", "xlsx", "pptx"]
+    }
+  ],
+  "default_output_formats": ["docx", "pdf", "xlsx", "pptx"],
+  "corpus_namespace": "economiste",
+  "system_prompt_path": "./system.md"
+}

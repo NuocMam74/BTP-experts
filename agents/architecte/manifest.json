@@ -1,0 +1,44 @@
+{
+  "slug": "architecte",
+  "name": "Architecte DPLG / HMONP",
+  "tagline": "Analyse PLU, conformité PMR & incendie, surfaces réglementaires",
+  "version": "0.3.0",
+  "model": "local-model",
+  "monthly_price_eur": 49,
+  "accepted_documents": [
+    "pdf:plans_archi",
+    "pdf:notice_pc",
+    "pdf:cctp_archi",
+    "pdf:plu",
+    "pdf:attestation_re2020",
+    "pdf:cerfa_13409"
+  ],
+  "skills": [
+    { "id": "verifier_pmr", "label": "Vérifier conformité PMR", "output_formats": ["docx", "pdf"] },
+    { "id": "analyser_plu", "label": "Analyser un PLU pour faisabilité", "output_formats": ["docx", "pdf"] },
+    { "id": "calculer_surfaces", "label": "Calculer SDP / ST / SHAB / Carrez", "output_formats": ["xlsx", "pdf"] },
+    { "id": "verifier_erp", "label": "Vérifier classement & règles ERP", "output_formats": ["docx", "pdf"] },
+    { "id": "analyser_re2020", "label": "Vérifier une attestation RE2020", "output_formats": ["xlsx", "pdf"] },
+    { "id": "rediger_notice_pc", "label": "Aider à rédiger la notice descriptive PC", "output_formats": ["docx"] }
+  ],
+  "tools": [
+    { "name": "calc_surfaces", "type": "javascript_function" },
+    { "name": "rag_search", "type": "vector_search", "namespace": "architecte" },
+    {
+      "name": "generer_rapport",
+      "type": "javascript_function",
+      "description": "Génère un livrable documentaire à partir d'un contenu Markdown structuré.",
+      "input_schema": {
+        "titre": "string",
+        "contenu": "string (markdown)",
+        "format": "docx | pdf | xlsx | pptx",
+        "agent": "string (slug agent)",
+        "metadata": "object (optionnel : projet, indice, date, signataire prévu)"
+      },
+      "supported_formats": ["docx", "pdf", "xlsx", "pptx"]
+    }
+  ],
+  "default_output_formats": ["docx", "pdf", "xlsx", "pptx"],
+  "corpus_namespace": "architecte",
+  "system_prompt_path": "./system.md"
+}
