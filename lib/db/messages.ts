@@ -4,11 +4,17 @@ import type { ModelMessage } from "ai";
 
 import { db, schema } from "./client";
 
+export type Citation = {
+  source_ref: string;
+  source_url: string | null;
+};
+
 export type StoredMessage = {
   id: string;
   conversationId: string;
   role: "user" | "assistant" | "tool" | "system";
   content: { text: string };
+  citations?: Citation[];
   createdAt: Date;
 };
 
@@ -80,13 +86,17 @@ export async function loadConversationMessages(
         r.role === "tool" ||
         r.role === "system",
     )
-    .map((row) => ({
-      id: row.id,
-      conversationId: row.conversationId,
-      role: row.role,
-      content: row.content as { text: string },
-      createdAt: row.createdAt,
-    }));
+    .map((row) => {
+      const tc = row.toolCalls as { citations?: Citation[] } | null;
+      return {
+        id: row.id,
+        conversationId: row.conversationId,
+        role: row.role,
+        content: row.content as { text: string },
+        citations: tc?.citations,
+        createdAt: row.createdAt,
+      };
+    });
 }
 
 export async function toModelMessages(

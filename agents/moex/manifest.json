@@ -54,6 +54,7 @@
   ],
   "tools": [
     { "name": "calculer_revision_prix", "type": "javascript_function" },
+    { "name": "recuperer_plu", "type": "javascript_function" },
     { "name": "rag_search", "type": "vector_search", "namespace": "moex" },
     {
       "name": "generer_rapport",

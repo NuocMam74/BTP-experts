@@ -1,5 +1,6 @@
 import type { Tool } from "ai";
 
+import { logger } from "@/lib/logger";
 import type { LoadedAgent } from "@/lib/agent-runtime/types";
 
 import { calcSurfacesTool } from "./calc_surfaces";
@@ -10,6 +11,7 @@ import { makeGenererRapportTool } from "./generer_rapport";
 import { makeRagSearchTool } from "./rag_search";
 import { predimBetonArmeTool } from "./predim_beton_arme";
 import { ratioM2Tool } from "./ratio_m2";
+import { recupererPluTool } from "./recuperer_plu";
 
 export function buildToolsForAgent(
   agent: LoadedAgent,
@@ -42,6 +44,9 @@ export function buildToolsForAgent(
           declaration.namespace ?? agent.corpus_namespace,
         );
         break;
+      case "recuperer_plu":
+        tools.recuperer_plu = recupererPluTool;
+        break;
       case "generer_rapport":
         if (context.userId) {
           tools.generer_rapport = makeGenererRapportTool({
@@ -52,9 +57,9 @@ export function buildToolsForAgent(
         }
         break;
       default:
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[tools] declared tool "${declaration.name}" has no implementation`,
+        logger.warn(
+          { tool: declaration.name, agent: agent.slug },
+          "declared tool has no implementation",
         );
     }
   }

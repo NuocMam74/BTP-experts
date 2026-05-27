@@ -23,6 +23,7 @@
   ],
   "tools": [
     { "name": "calc_surfaces", "type": "javascript_function" },
+    { "name": "recuperer_plu", "type": "javascript_function" },
     { "name": "rag_search", "type": "vector_search", "namespace": "architecte" },
     {
       "name": "generer_rapport",

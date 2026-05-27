@@ -1,4 +1,7 @@
 import ExcelJS from "exceljs";
+import mammoth from "mammoth";
+
+import { logger } from "@/lib/logger";
 
 import { parsePdfBuffer } from "./pdf";
 
@@ -10,6 +13,7 @@ export type ParseResult = {
 
 export type ParsedKind =
   | "pdf"
+  | "docx"
   | "text"
   | "markdown"
   | "xlsx"
@@ -58,8 +62,25 @@ export async function parseAttachment(
     try {
       const { text, pages } = await parsePdfBuffer(buffer);
       return { text, pages, kind: "pdf" };
-    } catch {
+    } catch (err) {
+      logger.warn({ filename, err }, "pdf parse failed");
       return { text: null, pages: null, kind: "pdf" };
+    }
+  }
+
+  // DOCX (mammoth) — note: .doc binaire ancien non géré.
+  if (
+    ext === ".docx" ||
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  ) {
+    try {
+      const result = await mammoth.extractRawText({ buffer });
+      const text = result.value?.trim() || null;
+      return { text, pages: null, kind: "docx" };
+    } catch (err) {
+      logger.warn({ filename, err }, "docx parse failed");
+      return { text: null, pages: null, kind: "docx" };
     }
   }
 
@@ -93,7 +114,8 @@ export async function parseAttachment(
         parts.push("");
       });
       return { text: parts.join("\n"), pages: wb.worksheets.length, kind: "xlsx" };
-    } catch {
+    } catch (err) {
+      logger.warn({ filename, err }, "xlsx parse failed");
       return { text: null, pages: null, kind: "xlsx" };
     }
   }
@@ -121,8 +143,7 @@ export async function parseAttachment(
     return { text: null, pages: null, kind: "image" };
   }
 
-  // DOCX et autres bureautiques : on accepte mais on ne parse pas pour l'instant
-  // (à brancher avec mammoth ou similaire plus tard).
+  // Tout autre (incluant le .doc binaire ancien) : stocké sans extraction.
   return { text: null, pages: null, kind: "unknown" };
 }
 
@@ -130,6 +151,8 @@ export function describeKind(kind: ParsedKind): string {
   switch (kind) {
     case "pdf":
       return "PDF";
+    case "docx":
+      return "Word";
     case "xlsx":
       return "Excel";
     case "csv":

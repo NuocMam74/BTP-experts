@@ -5,6 +5,7 @@ import { rawDb } from "@/lib/db/client";
 import { embed, embeddingToBuffer, EmbeddingError } from "@/lib/llm/embeddings";
 
 type KnnRow = { chunk_id: string; distance: number };
+type FtsRow = { chunk_id: string; bm25: number };
 type ChunkRow = {
   id: string;
   source_ref: string;
@@ -12,10 +13,36 @@ type ChunkRow = {
   content: string;
 };
 
+// Escape an FTS5 MATCH query: split into terms and quote each one so that
+// punctuation in user queries doesn't break the MATCH grammar.
+function buildFtsQuery(query: string): string {
+  const terms = query
+    .normalize("NFKD")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .split(/\s+/)
+    .filter((t) => t.length >= 2)
+    .slice(0, 12);
+  if (terms.length === 0) return "";
+  return terms.map((t) => `"${t.replace(/"/g, '""')}"*`).join(" OR ");
+}
+
+// Reciprocal Rank Fusion: combines two ranked lists.
+// Tuned for k=60 (standard).
+function rrf(rankedLists: Array<Array<string>>, k = 60): Map<string, number> {
+  const scores = new Map<string, number>();
+  for (const list of rankedLists) {
+    list.forEach((id, idx) => {
+      const prev = scores.get(id) ?? 0;
+      scores.set(id, prev + 1 / (k + idx + 1));
+    });
+  }
+  return scores;
+}
+
 export function makeRagSearchTool(namespace: string) {
   return tool({
     description:
-      "Recherche sémantique dans le corpus normatif de l'agent (Eurocodes, CCH, arrêtés, DTU, BOFIP, méthodologies UNTEC, etc.). Retourne les passages les plus pertinents avec leur référence d'origine. À utiliser systématiquement avant toute affirmation réglementaire.",
+      "Recherche hybride (sémantique + lexicale BM25) dans le corpus normatif de l'agent (Eurocodes, CCH, arrêtés, DTU, BOFIP, méthodologies UNTEC, etc.). Retourne les passages les plus pertinents avec leur référence d'origine. À utiliser systématiquement avant toute affirmation réglementaire.",
     inputSchema: z.object({
       query: z
         .string()
@@ -46,68 +73,103 @@ export function makeRagSearchTool(namespace: string) {
         };
       }
 
-      let queryVec;
-      try {
-        queryVec = await embed(query);
-      } catch (err) {
-        if (err instanceof EmbeddingError) {
-          return {
-            results: [],
-            warning:
-              "Recherche vectorielle indisponible : " +
-              err.message +
-              " Réponds en signalant à l'utilisateur que le RAG est temporairement indisponible et n'invente aucune référence.",
-            query,
-          };
-        }
-        throw err;
-      }
-
-      const queryBuf = embeddingToBuffer(queryVec);
       const overfetch = Math.min(Math.max(top_k * 5, 10), 50);
 
-      const knnRows = rawDb
-        .prepare(
-          `SELECT chunk_id, distance
-             FROM corpus_chunks_vec
-             WHERE embedding MATCH ? AND k = ${overfetch}`,
-        )
-        .all(queryBuf) as KnnRow[];
+      // --- Vector branch.
+      let vecIds: string[] = [];
+      let vecDistance = new Map<string, number>();
+      let vectorWarning: string | undefined;
+      try {
+        const queryVec = await embed(query);
+        const queryBuf = embeddingToBuffer(queryVec);
+        const knnRows = rawDb
+          .prepare(
+            `SELECT chunk_id, distance
+               FROM corpus_chunks_vec
+               WHERE embedding MATCH ? AND k = ${overfetch}`,
+          )
+          .all(queryBuf) as KnnRow[];
+        vecIds = knnRows.map((r) => r.chunk_id);
+        vecDistance = new Map(knnRows.map((r) => [r.chunk_id, r.distance]));
+      } catch (err) {
+        if (err instanceof EmbeddingError) {
+          vectorWarning =
+            "Branche sémantique indisponible (embeddings hors-ligne) : " +
+            err.message;
+        } else {
+          throw err;
+        }
+      }
 
-      if (knnRows.length === 0) {
+      // --- BM25 branch (FTS5).
+      const ftsQuery = buildFtsQuery(query);
+      let ftsIds: string[] = [];
+      if (ftsQuery.length > 0) {
+        try {
+          const ftsRows = rawDb
+            .prepare(
+              `SELECT chunk_id, bm25(corpus_chunks_fts) as bm25
+                 FROM corpus_chunks_fts
+                 WHERE corpus_chunks_fts MATCH ? AND agent_namespace = ?
+                 ORDER BY bm25
+                 LIMIT ?`,
+            )
+            .all(ftsQuery, namespace, overfetch) as FtsRow[];
+          ftsIds = ftsRows.map((r) => r.chunk_id);
+        } catch {
+          // FTS may not support the query — silently skip the lexical branch.
+        }
+      }
+
+      if (vecIds.length === 0 && ftsIds.length === 0) {
         return {
           results: [],
-          warning: "Aucun passage similaire trouvé dans le corpus.",
+          warning:
+            vectorWarning ??
+            "Aucun passage similaire trouvé dans le corpus.",
           query,
         };
       }
 
-      const chunkIds = knnRows.map((r) => r.chunk_id);
-      const placeholders = chunkIds.map(() => "?").join(",");
+      // --- RRF fusion of the two ranked lists.
+      const fused = rrf([vecIds, ftsIds]);
+      const orderedIds = [...fused.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, top_k * 2)
+        .map(([id]) => id);
+
+      if (orderedIds.length === 0) {
+        return { results: [], warning: vectorWarning, query };
+      }
+
+      const placeholders = orderedIds.map(() => "?").join(",");
       const chunks = rawDb
         .prepare(
           `SELECT id, source_ref, source_url, content
              FROM corpus_chunks
              WHERE id IN (${placeholders}) AND agent_namespace = ?`,
         )
-        .all(...chunkIds, namespace) as ChunkRow[];
+        .all(...orderedIds, namespace) as ChunkRow[];
 
-      const distanceById = new Map(knnRows.map((r) => [r.chunk_id, r.distance]));
-      const results = chunks
+      const chunkById = new Map(chunks.map((c) => [c.id, c]));
+      const results = orderedIds
+        .map((id) => chunkById.get(id))
+        .filter((c): c is ChunkRow => Boolean(c))
+        .slice(0, top_k)
         .map((c) => ({
           source_ref: c.source_ref,
           source_url: c.source_url,
           content: c.content,
-          distance: distanceById.get(c.id) ?? Number.POSITIVE_INFINITY,
-        }))
-        .sort((a, b) => a.distance - b.distance)
-        .slice(0, top_k);
+          distance: vecDistance.get(c.id),
+        }));
 
       return {
         results,
         query,
         corpus_size: countRow.n,
         retrieved: results.length,
+        mode: vecIds.length > 0 && ftsIds.length > 0 ? "hybrid" : vecIds.length > 0 ? "vector" : "lexical",
+        warning: vectorWarning,
       };
     },
   });

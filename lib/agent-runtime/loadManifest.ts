@@ -1,6 +1,9 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
+import { logger } from "@/lib/logger";
+
+import { listAgentsCache, loadedAgentCache } from "./manifestCache";
 import { withSharedGuardrails } from "./preambule";
 import {
   agentManifestSchema,
@@ -9,8 +12,12 @@ import {
 } from "./types";
 
 const AGENTS_DIR = path.join(process.cwd(), "agents");
+const LIST_KEY = "__list__";
 
 export async function listAgents(): Promise<AgentManifest[]> {
+  const cached = listAgentsCache.get(LIST_KEY);
+  if (cached) return cached;
+
   let entries: string[];
   try {
     entries = await fs.readdir(AGENTS_DIR);
@@ -28,22 +35,28 @@ export async function listAgents(): Promise<AgentManifest[]> {
       if (parsed.success) {
         manifests.push(parsed.data);
       } else {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[agents] invalid manifest for "${slug}": ${parsed.error.message}`,
+        logger.warn(
+          { slug, error: parsed.error.message },
+          "agent manifest invalid",
         );
       }
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code !== "ENOENT") {
-        // eslint-disable-next-line no-console
-        console.warn(`[agents] failed to load "${slug}":`, err);
+        logger.warn({ slug, err }, "failed to load agent manifest");
       }
     }
   }
-  return manifests.sort((a, b) => a.name.localeCompare(b.name, "fr"));
+  const sorted = manifests.sort((a, b) =>
+    a.name.localeCompare(b.name, "fr"),
+  );
+  listAgentsCache.set(LIST_KEY, sorted);
+  return sorted;
 }
 
 export async function loadAgent(slug: string): Promise<LoadedAgent | null> {
+  const cached = loadedAgentCache.get(slug);
+  if (cached) return cached;
+
   const rootPath = path.join(AGENTS_DIR, slug);
   const manifestPath = path.join(rootPath, "manifest.json");
 
@@ -60,5 +73,7 @@ export async function loadAgent(slug: string): Promise<LoadedAgent | null> {
   const rawSystemPrompt = await fs.readFile(systemPromptPath, "utf8");
   const systemPrompt = withSharedGuardrails(rawSystemPrompt);
 
-  return { ...manifest, systemPrompt, rootPath };
+  const loaded: LoadedAgent = { ...manifest, systemPrompt, rootPath };
+  loadedAgentCache.set(slug, loaded);
+  return loaded;
 }

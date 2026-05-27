@@ -62,6 +62,18 @@ export const userAgents = sqliteTable(
   }),
 );
 
+export const projects = sqliteTable("projects", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  color: text("color"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export const conversations = sqliteTable("conversations", {
   id: text("id").primaryKey(),
   userId: text("user_id")
@@ -71,6 +83,10 @@ export const conversations = sqliteTable("conversations", {
     .notNull()
     .references(() => agents.slug),
   title: text("title"),
+  projectId: text("project_id").references(() => projects.id, {
+    onDelete: "set null",
+  }),
+  tags: text("tags", { mode: "json" }).$type<string[]>(),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -144,6 +160,7 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Agent = typeof agents.$inferSelect;
 export type Conversation = typeof conversations.$inferSelect;
+export type Project = typeof projects.$inferSelect;
 export type Message = typeof messages.$inferSelect;
 export type Document = typeof documents.$inferSelect;
 export type CorpusChunk = typeof corpusChunks.$inferSelect;

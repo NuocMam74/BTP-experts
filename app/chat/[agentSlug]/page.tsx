@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { AGENT_ACCENT, AgentIcon } from "@/components/AgentIcon";
 import { auth } from "@/auth";
-import { loadAgent } from "@/lib/agent-runtime/loadManifest";
+import { listAgents, loadAgent } from "@/lib/agent-runtime/loadManifest";
 import { db, schema } from "@/lib/db/client";
 import { loadConversationMessages } from "@/lib/db/messages";
 
@@ -22,15 +22,21 @@ export default async function ChatPage({
     notFound();
   }
 
-  const agent = await loadAgent(params.agentSlug);
+  const [agent, allAgents] = await Promise.all([
+    loadAgent(params.agentSlug),
+    listAgents(),
+  ]);
   if (!agent) notFound();
 
   let initialMessages: Array<{
     id: string;
     role: "user" | "assistant";
     content: string;
+    citations?: Array<{ source_ref: string; source_url: string | null }>;
   }> = [];
   let initialConversationId: string | null = null;
+  let currentProjectId: string | null = null;
+  let currentTags: string[] = [];
 
   if (searchParams.conversationId) {
     const stored = await loadConversationMessages(
@@ -45,7 +51,13 @@ export default async function ChatPage({
           id: m.id,
           role: m.role as "user" | "assistant",
           content: m.content.text,
+          citations: m.citations,
         }));
+      const conv = await db.query.conversations.findFirst({
+        where: eq(schema.conversations.id, searchParams.conversationId),
+      });
+      currentProjectId = conv?.projectId ?? null;
+      currentTags = (conv?.tags as string[] | null) ?? [];
     }
   }
 
@@ -55,6 +67,8 @@ export default async function ChatPage({
       id: schema.conversations.id,
       title: schema.conversations.title,
       createdAt: schema.conversations.createdAt,
+      projectId: schema.conversations.projectId,
+      tags: schema.conversations.tags,
     })
     .from(schema.conversations)
     .where(
@@ -65,6 +79,12 @@ export default async function ChatPage({
     )
     .orderBy(desc(schema.conversations.createdAt))
     .limit(30);
+
+  const projects = await db
+    .select()
+    .from(schema.projects)
+    .where(eq(schema.projects.userId, session.user.id))
+    .orderBy(desc(schema.projects.createdAt));
 
   const accent = AGENT_ACCENT[agent.slug] ?? AGENT_ACCENT.architecte!;
 
@@ -142,12 +162,22 @@ export default async function ChatPage({
           corpus_namespace: agent.corpus_namespace,
           system_prompt_path: agent.system_prompt_path,
         }}
+        allAgents={allAgents.map((a) => ({ slug: a.slug, name: a.name }))}
         initialMessages={initialMessages}
         initialConversationId={initialConversationId}
+        initialProjectId={currentProjectId}
+        initialTags={currentTags}
+        projects={projects.map((p) => ({
+          id: p.id,
+          name: p.name,
+          color: p.color,
+        }))}
         agentConversations={agentConversations.map((c) => ({
           id: c.id,
           title: c.title,
           createdAt: c.createdAt.toISOString(),
+          projectId: c.projectId,
+          tags: (c.tags as string[] | null) ?? null,
         }))}
       />
     </main>

@@ -7,16 +7,36 @@ import { and, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db, schema } from "@/lib/db/client";
 import { describeKind, parseAttachment } from "@/lib/parsers";
+import { checkRateLimit, clientIp } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const MAX_BYTES = 50 * 1024 * 1024;
+const UPLOAD_LIMIT = 30;
+const UPLOAD_WINDOW_MS = 60_000;
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const rateKey = `upload:${session.user.id}:${clientIp(req)}`;
+  const limit = checkRateLimit(rateKey, UPLOAD_LIMIT, UPLOAD_WINDOW_MS);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      {
+        error: "Trop d'uploads — patientez quelques secondes.",
+        retryAfterMs: limit.resetMs,
+      },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": Math.ceil(limit.resetMs / 1000).toString(),
+        },
+      },
+    );
   }
 
   const formData = await req.formData();

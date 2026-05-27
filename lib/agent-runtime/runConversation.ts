@@ -1,15 +1,9 @@
-import { createOpenAI } from "@ai-sdk/openai";
 import { stepCountIs, streamText, type ModelMessage } from "ai";
+
+import { getModel } from "@/lib/llm/provider";
 
 import { buildToolsForAgent } from "./tools";
 import type { LoadedAgent } from "./types";
-
-const openai = createOpenAI({
-  baseURL: process.env.OPENAI_API_BASE_URL ?? "http://localhost:1234/v1",
-  apiKey: process.env.OPENAI_API_KEY ?? "lm-studio",
-});
-
-const MODEL_ID = process.env.OPENAI_MODEL ?? "local-model";
 
 export function streamAgentResponse({
   agent,
@@ -54,7 +48,7 @@ export function streamAgentResponse({
   }
 
   return streamText({
-    model: openai(MODEL_ID),
+    model: getModel(agent.model),
     system: parts.join("\n\n"),
     messages,
     tools: buildToolsForAgent(agent, { userId, conversationId }),
