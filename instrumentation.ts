@@ -4,6 +4,11 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./sentry.server.config");
+    // Sync the agents table from the filesystem manifests on boot. Conversations
+    // FK their agent_slug to agents.slug, so an empty table breaks the first chat.
+    // Idempotent (upsert + in-process guard) and node-only (pulls in better-sqlite3).
+    const { seedAgentsFromFilesystem } = await import("./lib/db/seed");
+    await seedAgentsFromFilesystem();
   }
   if (process.env.NEXT_RUNTIME === "edge") {
     await import("./sentry.edge.config");

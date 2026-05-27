@@ -26,6 +26,9 @@ export async function embedMany(texts: string[]): Promise<Float32Array[]> {
     res = await llm.embeddings.create({
       model: EMBEDDING_MODEL,
       input: texts,
+      // The OpenAI SDK defaults to base64, which LM Studio mis-encodes (returns a
+      // truncated/garbled vector). Forcing "float" yields the correct 1024-dim array.
+      encoding_format: "float",
     });
   } catch (err) {
     throw new EmbeddingError(

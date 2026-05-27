@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import fs from "node:fs/promises";
+import type { ModelMessage } from "ai";
 
 import { auth } from "@/auth";
 import { db, schema } from "@/lib/db/client";
@@ -7,6 +9,7 @@ import { loadAgent } from "@/lib/agent-runtime/loadManifest";
 import { streamAgentResponse } from "@/lib/agent-runtime/runConversation";
 import { loadSkillPrompt } from "@/lib/agent-runtime/skills";
 import { checkEntitlement } from "@/lib/billing/entitlements";
+import { renderPdfToImageDataUrls } from "@/lib/parsers/pdf";
 import {
   ensureConversation,
   loadConversationMessages,
@@ -32,6 +35,27 @@ type Citation = {
 function sseEncode(event: string, data: unknown): Uint8Array {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   return new TextEncoder().encode(payload);
+}
+
+// Pulls a human-readable message out of whatever the model/provider throws.
+// AI SDK / LM Studio errors arrive as nested plain objects ({ error: { message } }),
+// so a naive String(err) yields "[object Object]" — dig through common shapes.
+function errorMessage(err: unknown, depth = 0): string {
+  if (err == null) return "Erreur inconnue";
+  if (typeof err === "string") return err;
+  if (err instanceof Error) return err.message;
+  if (typeof err === "object" && depth < 4) {
+    const o = err as Record<string, unknown>;
+    if (typeof o.message === "string" && o.message.length > 0) return o.message;
+    if (o.error != null) return errorMessage(o.error, depth + 1);
+    try {
+      const json = JSON.stringify(err);
+      if (json && json !== "{}") return json;
+    } catch {
+      /* fall through */
+    }
+  }
+  return String(err);
 }
 
 export async function POST(
@@ -118,11 +142,44 @@ export async function POST(
   }
 
   const history = await loadConversationMessages(conversationId, userId);
-  const modelMessages = await toModelMessages(history);
+  const fullModelMessages = await toModelMessages(history);
+  // Keep only the most recent turns: a long conversation would otherwise blow the
+  // model's context window (16k tokens) once added to the system prompt + tool
+  // schemas + RAG passages. The full history stays persisted/searchable in the DB.
+  const MAX_HISTORY_MESSAGES = 20;
+  const modelMessages =
+    fullModelMessages.length > MAX_HISTORY_MESSAGES
+      ? fullModelMessages.slice(-MAX_HISTORY_MESSAGES)
+      : fullModelMessages;
 
   const docs = await db.query.documents.findMany({
     where: eq(schema.documents.conversationId, conversationId),
   });
+
+  // Visual docs are fed to the model as image input (multimodal), attached to the
+  // latest user turn. Requires a vision-capable model (e.g. Qwen2.5-VL).
+  //  - images: sent directly;
+  //  - PDFs with little/no extractable text (plans, scans): rendered to page images.
+  // The conversation's visual docs stay attached on EVERY turn (capped) so the
+  // agent keeps "seeing" the document across follow-up questions — not just on the
+  // upload turn. The most recent docs are prioritised and the total is bounded to
+  // protect the context window.
+  const MAX_VISUAL_DOCS = 3;
+  const visualDocs = docs
+    .filter((d) => {
+      const kind = (d.metadata as { kind?: string } | null)?.kind;
+      return (
+        kind === "image" ||
+        (kind === "pdf" && (!d.parsedText || d.parsedText.trim().length < 200))
+      );
+    })
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .slice(0, MAX_VISUAL_DOCS);
+  const imageParts = await buildImageParts(visualDocs);
+  if (imageParts.length > 0) {
+    attachImagesToLastUserMessage(modelMessages, imageParts);
+  }
+
   const attachmentsContext =
     docs.length > 0
       ? docs
@@ -144,7 +201,10 @@ export async function POST(
               return `${header}\n\n${text}`;
             }
             if (kindLabel === "image") {
-              return `${header}\n\n_(Image — non lue automatiquement. Demande à l'utilisateur de décrire son contenu si nécessaire, ou propose d'utiliser un OCR.)_`;
+              return `${header}\n\n_(Image jointe à ce message en entrée visuelle — analyse-la directement. Lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation à l'utilisateur avant de chiffrer.)_`;
+            }
+            if (kindLabel === "pdf") {
+              return `${header}\n\n_(PDF sans texte exploitable — ses pages sont jointes à ce message en images (entrée visuelle). Analyse-les directement : lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation avant de chiffrer.)_`;
             }
             return `${header}\n\n_(Le contenu textuel de ce fichier n'a pas pu être extrait automatiquement. Demande à l'utilisateur de coller le contenu pertinent ou de fournir un PDF/XLSX/DOCX/TXT.)_`;
           })
@@ -158,6 +218,28 @@ export async function POST(
   }
 
   const aggregatedCitations: Citation[] = [];
+  let assistantText = "";
+  let persisted = false;
+
+  // Persist whatever the assistant produced — exactly once — whether the stream
+  // finishes, errors, or is aborted by the client ("Stop"). Guarantees a partial
+  // answer is never lost.
+  async function persistAssistant() {
+    if (persisted) return;
+    persisted = true;
+    if (assistantText.trim().length === 0) return;
+    const id = await persistMessage({
+      conversationId,
+      role: "assistant",
+      text: assistantText,
+    });
+    if (aggregatedCitations.length > 0) {
+      await db
+        .update(schema.messages)
+        .set({ toolCalls: { citations: aggregatedCitations } })
+        .where(eq(schema.messages.id, id));
+    }
+  }
 
   const result = streamAgentResponse({
     agent,
@@ -166,31 +248,22 @@ export async function POST(
     skillPrompt,
     userId,
     conversationId,
-    onFinish: async ({ text }) => {
-      if (text.trim().length > 0) {
-        // Persist assistant text + collected citations (stored in toolCalls JSON
-        // column for now — keeps the schema compact).
-        const persistedCitations =
-          aggregatedCitations.length > 0 ? aggregatedCitations : undefined;
-        const id = await persistMessage({
-          conversationId,
-          role: "assistant",
-          text,
-        });
-        if (persistedCitations) {
-          await db
-            .update(schema.messages)
-            .set({ toolCalls: { citations: persistedCitations } })
-            .where(eq(schema.messages.id, id));
-        }
-      }
-    },
+    abortSignal: req.signal,
   });
 
   // Stream as SSE so the client can react to tool calls / citations live.
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      controller.enqueue(sseEncode("conversation", { id: conversationId }));
+      let closed = false;
+      const safeEnqueue = (chunk: Uint8Array) => {
+        if (closed) return;
+        try {
+          controller.enqueue(chunk);
+        } catch {
+          /* controller already closed (client gone) */
+        }
+      };
+      safeEnqueue(sseEncode("conversation", { id: conversationId }));
       try {
         for await (const part of result.fullStream) {
           switch (part.type) {
@@ -198,7 +271,25 @@ export async function POST(
               const delta = (part as { text?: string; delta?: string }).text
                 ?? (part as { delta?: string }).delta
                 ?? "";
-              if (delta) controller.enqueue(sseEncode("text", { delta }));
+              if (delta) {
+                assistantText += delta;
+                safeEnqueue(sseEncode("text", { delta }));
+              }
+              break;
+            }
+            // Fires as soon as the model STARTS emitting a tool call — before the
+            // (potentially large/slow) arguments are fully generated. We surface it
+            // immediately so the UI shows a loading state (e.g. "Génération du
+            // document en cours…") instead of looking frozen.
+            case "tool-input-start": {
+              const p = part as { toolCallId?: string; toolName?: string };
+              safeEnqueue(
+                sseEncode("tool-call", {
+                  id: p.toolCallId,
+                  name: p.toolName,
+                  input: null,
+                }),
+              );
               break;
             }
             case "tool-call": {
@@ -207,7 +298,7 @@ export async function POST(
                 toolName?: string;
                 input?: unknown;
               };
-              controller.enqueue(
+              safeEnqueue(
                 sseEncode("tool-call", {
                   id: p.toolCallId,
                   name: p.toolName,
@@ -226,7 +317,7 @@ export async function POST(
               if (citations.length > 0) {
                 aggregatedCitations.push(...citations);
               }
-              controller.enqueue(
+              safeEnqueue(
                 sseEncode("tool-result", {
                   id: p.toolCallId,
                   name: p.toolName,
@@ -238,11 +329,7 @@ export async function POST(
             case "error": {
               const err = (part as { error?: unknown }).error;
               logger.warn({ err, agent: agent.slug }, "stream error part");
-              controller.enqueue(
-                sseEncode("error", {
-                  message: err instanceof Error ? err.message : String(err),
-                }),
-              );
+              safeEnqueue(sseEncode("error", { message: errorMessage(err) }));
               break;
             }
             // finish / start-step / finish-step / etc. — ignored client-side
@@ -251,20 +338,31 @@ export async function POST(
           }
         }
         if (aggregatedCitations.length > 0) {
-          controller.enqueue(
+          safeEnqueue(
             sseEncode("citations", { citations: aggregatedCitations }),
           );
         }
-        controller.enqueue(sseEncode("done", {}));
+        safeEnqueue(sseEncode("done", {}));
       } catch (err) {
-        logger.error({ err, agent: agent.slug }, "chat stream crashed");
-        controller.enqueue(
-          sseEncode("error", {
-            message: err instanceof Error ? err.message : "Erreur inconnue",
-          }),
-        );
+        if (req.signal.aborted) {
+          logger.info({ agent: agent.slug }, "chat stream aborted by client");
+        } else {
+          logger.error({ err, agent: agent.slug }, "chat stream crashed");
+          safeEnqueue(sseEncode("error", { message: errorMessage(err) }));
+        }
       } finally {
-        controller.close();
+        // Save the partial (or full) answer before closing — covers finish/error/abort.
+        try {
+          await persistAssistant();
+        } catch (err) {
+          logger.error({ err }, "failed to persist assistant message");
+        }
+        closed = true;
+        try {
+          controller.close();
+        } catch {
+          /* already closed */
+        }
       }
     },
   });
@@ -277,6 +375,63 @@ export async function POST(
       "X-Conversation-Id": conversationId,
     },
   });
+}
+
+type ImagePart = { type: "image"; image: string };
+
+// Turns visual attachments into base64 data-URL image parts the model can see:
+// images are read directly; PDFs (plans/scans without text) are rendered to page
+// images. Oversized images are skipped (logged) to protect the request payload.
+async function buildImageParts(
+  visualDocs: Array<{
+    storagePath: string;
+    mimeType: string | null;
+    filename: string;
+    metadata: unknown;
+  }>,
+): Promise<ImagePart[]> {
+  const MAX_IMAGE_BYTES = 12 * 1024 * 1024;
+  const MAX_PDF_PAGES = 3;
+  const parts: ImagePart[] = [];
+  for (const doc of visualDocs) {
+    const kind = (doc.metadata as { kind?: string } | null)?.kind;
+    try {
+      const buf = await fs.readFile(doc.storagePath);
+      if (kind === "pdf") {
+        const urls = await renderPdfToImageDataUrls(buf, MAX_PDF_PAGES);
+        for (const url of urls) parts.push({ type: "image", image: url });
+        continue;
+      }
+      if (buf.byteLength > MAX_IMAGE_BYTES) {
+        logger.warn(
+          { filename: doc.filename, bytes: buf.byteLength },
+          "image too large for vision, skipped",
+        );
+        continue;
+      }
+      const mime = doc.mimeType ?? "image/jpeg";
+      parts.push({ type: "image", image: `data:${mime};base64,${buf.toString("base64")}` });
+    } catch (err) {
+      logger.warn({ filename: doc.filename, err }, "failed to read attachment for vision");
+    }
+  }
+  return parts;
+}
+
+// Appends the image parts to the most recent user message, converting its plain
+// string content into a multimodal [text, ...images] array.
+function attachImagesToLastUserMessage(
+  messages: ModelMessage[],
+  imageParts: ImagePart[],
+): void {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i];
+    if (m && m.role === "user") {
+      const text = typeof m.content === "string" ? m.content : "";
+      m.content = [{ type: "text", text }, ...imageParts];
+      return;
+    }
+  }
 }
 
 function extractCitations(toolName: string | undefined, output: unknown): Citation[] {

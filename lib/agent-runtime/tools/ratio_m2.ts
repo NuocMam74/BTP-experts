@@ -118,7 +118,9 @@ export const ratioM2Tool = tool({
     const regionFactor =
       region === "idf"
         ? 1.15
-        : region === "lyon_grand_est" || region === "sud"
+        : region === "lyon_grand_est" ||
+            region === "sud" ||
+            region === "ouest_atlantique"
           ? 1.05
           : 1.0;
 

@@ -13,6 +13,7 @@ export function streamAgentResponse({
   userId,
   conversationId,
   onFinish,
+  abortSignal,
 }: {
   agent: LoadedAgent;
   messages: ModelMessage[];
@@ -21,6 +22,8 @@ export function streamAgentResponse({
   userId?: string;
   conversationId?: string;
   onFinish?: (final: { text: string; toolCalls: number }) => void | Promise<void>;
+  // Aborts the generation when the client disconnects / hits "Stop".
+  abortSignal?: AbortSignal;
 }) {
   const parts: string[] = [agent.systemPrompt];
 
@@ -52,8 +55,12 @@ export function streamAgentResponse({
     system: parts.join("\n\n"),
     messages,
     tools: buildToolsForAgent(agent, { userId, conversationId }),
-    stopWhen: stepCountIs(6),
+    // A realistic turn chains several rag_search calls (sourcing claims) + a
+    // calculation + generer_rapport. 6 steps was too tight and could cut off the
+    // agent before it cited its sources or produced the deliverable.
+    stopWhen: stepCountIs(12),
     temperature: 0.2,
+    abortSignal,
     onFinish: async (result) => {
       if (onFinish) {
         await onFinish({

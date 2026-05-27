@@ -151,6 +151,13 @@ export function makeRagSearchTool(namespace: string) {
         )
         .all(...orderedIds, namespace) as ChunkRow[];
 
+      // Cap the content injected per passage. Full chunks (~2500+ chars) × several
+      // rag_search calls can overflow the model's context window (16k tokens) and
+      // trigger a 400. The key passage + reference is enough for grounding.
+      const MAX_CONTENT_CHARS = 1200;
+      const truncate = (s: string) =>
+        s.length > MAX_CONTENT_CHARS ? s.slice(0, MAX_CONTENT_CHARS) + " […]" : s;
+
       const chunkById = new Map(chunks.map((c) => [c.id, c]));
       const results = orderedIds
         .map((id) => chunkById.get(id))
@@ -159,7 +166,7 @@ export function makeRagSearchTool(namespace: string) {
         .map((c) => ({
           source_ref: c.source_ref,
           source_url: c.source_url,
-          content: c.content,
+          content: truncate(c.content),
           distance: vecDistance.get(c.id),
         }));
 

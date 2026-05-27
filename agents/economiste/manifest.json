@@ -46,6 +46,7 @@
   ],
   "tools": [
     { "name": "ratio_m2", "type": "javascript_function" },
+    { "name": "calculer_revision_prix", "type": "javascript_function" },
     { "name": "rag_search", "type": "vector_search", "namespace": "economiste" },
     {
       "name": "generer_rapport",

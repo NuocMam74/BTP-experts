@@ -52,5 +52,8 @@ export function getModel(agentModel?: string): LanguageModel {
     agentModel && !agentModel.startsWith("claude-") && agentModel !== "local-model"
       ? agentModel
       : DEFAULT_LMSTUDIO_MODEL;
-  return openai(modelId);
+  // Force the Chat Completions API. Calling openai(modelId) defaults to the
+  // Responses API (/v1/responses), which LM Studio does not implement — it
+  // rejects tool calls with "Invalid type for 'input'" (invalid_union).
+  return openai.chat(modelId);
 }

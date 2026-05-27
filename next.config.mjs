@@ -10,6 +10,14 @@ const nextConfig = {
       "pino",
       "pino-pretty",
       "thread-stream",
+      // Native .node binary — must be require()d at runtime, not webpack-bundled
+      // (used by lib/parsers/pdf.ts to render PDF pages to images for vision).
+      "@napi-rs/canvas",
+      // pdfkit reads its AFM font files via `fs.readFileSync(__dirname + '/data/*.afm')`.
+      // Bundled by webpack, __dirname points into .next/ where those files don't exist
+      // → ENOENT on every PDF report. Externalize so it's required from node_modules.
+      "pdfkit",
+      "fontkit",
     ],
     serverActions: { bodySizeLimit: "25mb" },
   },

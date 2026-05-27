@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components, type Options } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
 import { AGENT_ACCENT, AgentIcon } from "@/components/AgentIcon";
+import { DiagnosticsModal } from "@/components/LmStudioDiagnostics";
 import type { AgentManifest } from "@/lib/agent-runtime/types";
 
 type Citation = { source_ref: string; source_url: string | null };
@@ -16,7 +21,15 @@ type Message = {
   content: string;
   citations?: Citation[];
   activeTools?: ActiveTool[];
+  createdAt?: string; // ISO timestamp — shown as HH:MM in the bubble
 };
+
+function formatTime(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
 
 type ActiveTool = {
   id: string;
@@ -100,6 +113,80 @@ function toolLabel(name: string): string {
   }
 }
 
+// --- Markdown rendering (assistant messages) ---------------------------------
+// GFM enables tables, strikethrough, task lists & autolinks. remark-math +
+// rehype-katex render LaTeX (e.g. Eurocode formulas, m² written as \text{m}^2).
+const CHAT_REMARK_PLUGINS = [remarkGfm, remarkMath];
+const CHAT_REHYPE_PLUGINS: Options["rehypePlugins"] = [
+  [rehypeKatex, { throwOnError: false, errorColor: "#ef4444" }],
+];
+
+// Models emit math with \( \) and \[ \] delimiters, which remark-math doesn't
+// recognize (it expects $ and $$). Normalize them before rendering. Uses a
+// replacer function so "$$" isn't interpreted as a special replacement pattern.
+function normalizeMathDelimiters(md: string): string {
+  return md
+    .replace(/\\\[/g, () => "$$")
+    .replace(/\\\]/g, () => "$$")
+    .replace(/\\\(/g, () => "$")
+    .replace(/\\\)/g, () => "$");
+}
+
+function mdNodeText(node: React.ReactNode): string {
+  if (node == null || node === false || node === true) return "";
+  if (typeof node === "string" || typeof node === "number") return String(node);
+  if (Array.isArray(node)) return node.map(mdNodeText).join("");
+  if (typeof node === "object" && "props" in node) {
+    return mdNodeText(
+      (node as { props?: { children?: React.ReactNode } }).props?.children,
+    );
+  }
+  return "";
+}
+
+// A cell whose content is essentially a number (optionally with a unit/symbol)
+// reads far better right-aligned with tabular figures — typical of chiffrages.
+const NUMERIC_CELL = /^[-+]?\d[\d\s.,]*\s*(?:€|%|m²|m³|ml|m|U|k€|M€|TTC|HT)?$/i;
+function isNumericCell(children: React.ReactNode): boolean {
+  const t = mdNodeText(children).trim();
+  return t.length > 0 && /\d/.test(t) && NUMERIC_CELL.test(t);
+}
+
+const CHAT_MARKDOWN_COMPONENTS: Components = {
+  a: ({ node: _n, children, href, ...props }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+      {children}
+    </a>
+  ),
+  // Wrap tables so wide ones (DPGF, métré…) scroll horizontally instead of
+  // overflowing or crushing the chat bubble.
+  table: ({ node: _n, children, ...props }) => (
+    <div className="prose-chat-table-wrap scrollbar-thin">
+      <table {...props}>{children}</table>
+    </div>
+  ),
+  th: ({ node: _n, children, style, ...props }) => (
+    <th
+      style={isNumericCell(children) ? { ...style, textAlign: "right" } : style}
+      {...props}
+    >
+      {children}
+    </th>
+  ),
+  td: ({ node: _n, children, style, ...props }) => (
+    <td
+      style={
+        isNumericCell(children)
+          ? { ...style, textAlign: "right", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" }
+          : style
+      }
+      {...props}
+    >
+      {children}
+    </td>
+  ),
+};
+
 // --- SSE parser: consumes a ReadableStream and yields {event, data} objects.
 async function* parseSse(
   reader: ReadableStreamDefaultReader<Uint8Array>,
@@ -167,6 +254,8 @@ export function ChatUI({
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
+  // Last successfully uploaded doc — shown as a confirmation banner in the thread.
+  const [uploadNotice, setUploadNotice] = useState<UploadedDoc | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(
     initialConversationId,
   );
@@ -184,6 +273,7 @@ export function ChatUI({
   const [searchHits, setSearchHits] = useState<SearchHit[] | null>(null);
   const [llmOnline, setLlmOnline] = useState<boolean | null>(null);
   const [llmError, setLlmError] = useState<string | null>(null);
+  const [diagOpen, setDiagOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -191,10 +281,41 @@ export function ChatUI({
   // Last user prompt (kept so the regenerate button knows what to re-send)
   const lastUserPromptRef = useRef<string | null>(null);
   const lastSkillIdRef = useRef<string | null>(null);
+  // In-flight request controller, so the user can stop a running generation.
+  const abortRef = useRef<AbortController | null>(null);
+
+  const stopStreaming = useCallback(() => {
+    abortRef.current?.abort();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
+
+  // useState only seeds from props on mount. After router.refresh() the server
+  // sends fresh props but the state wouldn't update — so the history list and the
+  // project list would never reflect new/updated conversations or projects.
+  // Re-sync them whenever the server props change.
+  useEffect(() => {
+    setConversations(agentConversations);
+  }, [agentConversations]);
+
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
+
+  // When the server hands us a *different* conversation — clicking one in the
+  // history, or starting a new one — resync the per-conversation state from props.
+  // Skipped while streaming so a live response is never clobbered.
+  useEffect(() => {
+    if (isStreaming) return;
+    setMessages(initialMessages);
+    setConversationId(initialConversationId);
+    setProjectId(initialProjectId);
+    setTags(initialTags);
+    setDocs([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialConversationId]);
 
   // Pick up a cross-agent mention seed (set by @mention router push).
   useEffect(() => {
@@ -276,6 +397,8 @@ export function ChatUI({
     assistantId: string;
   }) {
     const { assistantId } = opts;
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
       const res = await fetch(`/api/chat/${agent.slug}`, {
         method: "POST",
@@ -286,6 +409,7 @@ export function ChatUI({
           skillId: opts.skillId,
           regenerate: opts.regenerate,
         }),
+        signal: controller.signal,
       });
 
       if (!res.ok) {
@@ -359,9 +483,34 @@ export function ChatUI({
       // Refresh the sidebar in the background — title may have been generated.
       void refreshConversations();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
-      setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+      const aborted =
+        controller.signal.aborted ||
+        (err instanceof Error && err.name === "AbortError");
+      if (!aborted) {
+        setError(err instanceof Error ? err.message : "Erreur inconnue");
+        // Keep a partial answer if any was streamed; only drop an empty bubble.
+        setMessages((prev) => {
+          const m = prev.find((x) => x.id === assistantId);
+          if (m && m.content.trim().length > 0) return prev;
+          return prev.filter((x) => x.id !== assistantId);
+        });
+      }
+      // On abort the partial content is already in state — we keep it as-is.
     } finally {
+      abortRef.current = null;
+      // Stop any tool spinner left "running" on the (possibly partial) message.
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId && m.activeTools
+            ? {
+                ...m,
+                activeTools: m.activeTools.map((t) =>
+                  t.status === "running" ? { ...t, status: "done" as const } : t,
+                ),
+              }
+            : m,
+        ),
+      );
       setIsStreaming(false);
       setActiveSkillId(null);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -376,6 +525,7 @@ export function ChatUI({
   async function send(userText: string, skillId?: string) {
     if (!userText.trim() || isStreaming) return;
     setError(null);
+    setUploadNotice(null);
 
     // Detect @agent mention — if present, route to that agent's chat instead.
     const mentionMatch = userText.match(/^@([a-z0-9-]+)\s+(.+)$/i);
@@ -398,6 +548,7 @@ export function ChatUI({
       id: crypto.randomUUID(),
       role: "user",
       content: userText,
+      createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -407,7 +558,7 @@ export function ChatUI({
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "" },
+      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() },
     ]);
 
     await streamResponse({ userText, skillId, assistantId });
@@ -429,7 +580,7 @@ export function ChatUI({
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "" },
+      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() },
     ]);
 
     await streamResponse({
@@ -461,17 +612,16 @@ export function ChatUI({
         url.searchParams.set("conversationId", data.conversationId);
         router.replace(`${url.pathname}${url.search}`, { scroll: false });
       }
-      setDocs((prev) => [
-        ...prev,
-        {
-          documentId: data.documentId,
-          filename: data.filename,
-          pages: data.pages,
-          parsed: data.parsed,
-          kind: data.kind,
-          kindLabel: data.kindLabel,
-        },
-      ]);
+      const uploaded: UploadedDoc = {
+        documentId: data.documentId,
+        filename: data.filename,
+        pages: data.pages,
+        parsed: data.parsed,
+        kind: data.kind,
+        kindLabel: data.kindLabel,
+      };
+      setDocs((prev) => [...prev, uploaded]);
+      setUploadNotice(uploaded);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload échoué");
     } finally {
@@ -482,6 +632,7 @@ export function ChatUI({
 
   function removeDoc(documentId: string) {
     setDocs((prev) => prev.filter((d) => d.documentId !== documentId));
+    setUploadNotice((n) => (n?.documentId === documentId ? null : n));
   }
 
   function triggerSkill(skillId: string, label: string) {
@@ -492,6 +643,7 @@ export function ChatUI({
     setMessages([]);
     setConversationId(null);
     setDocs([]);
+    setUploadNotice(null);
     setError(null);
     setProjectId(null);
     setTags([]);
@@ -516,6 +668,27 @@ export function ChatUI({
     }
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (id === conversationId) startNewConversation();
+  }
+
+  async function renameConversation(id: string, currentTitle: string | null) {
+    const next = prompt("Nouveau nom de la conversation :", currentTitle ?? "");
+    if (next == null) return; // cancelled
+    const trimmed = next.trim().slice(0, 200);
+    if (!trimmed || trimmed === currentTitle) return;
+    // Optimistic update.
+    setConversations((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, title: trimmed } : c)),
+    );
+    const res = await fetch(`/api/conversations/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: trimmed }),
+    });
+    if (!res.ok) {
+      setError("Renommage échoué");
+      return;
+    }
+    router.refresh();
   }
 
   async function updateConversationProject(newProjectId: string | null) {
@@ -605,6 +778,8 @@ export function ChatUI({
       }}
       onDrop={handleDrop}
     >
+      <DiagnosticsModal open={diagOpen} onClose={() => setDiagOpen(false)} />
+
       {isDragging && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm">
           <div className="rounded-md border border-dashed border-foreground/40 bg-surface-elevated p-8 text-center">
@@ -623,6 +798,7 @@ export function ChatUI({
         currentId={conversationId}
         onNewConversation={startNewConversation}
         onDelete={deleteConversation}
+        onRename={renameConversation}
         accentColor={accent.color}
         open={historyOpen}
         onOpenChange={setHistoryOpen}
@@ -663,6 +839,14 @@ export function ChatUI({
               <div className="font-semibold">LM Studio hors-ligne</div>
               <div className="mt-0.5 opacity-90">
                 Démarrez le serveur local (port 1234 par défaut) et chargez votre modèle. Erreur : {llmError ?? "inconnue"}.{" "}
+                <button
+                  type="button"
+                  onClick={() => setDiagOpen(true)}
+                  className="underline hover:no-underline"
+                >
+                  Diagnostiquer
+                </button>
+                {" · "}
                 <a
                   href="https://lmstudio.ai/docs/local-server"
                   target="_blank"
@@ -721,6 +905,30 @@ export function ChatUI({
               <span className="font-medium">Erreur :</span> {error}
             </div>
           )}
+          {uploadNotice && (
+            <div className="animate-slide-up rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+              <div className="flex items-center gap-2 font-semibold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-emerald-400">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+                Document prêt à être analysé
+              </div>
+              <ul className="mt-1.5 space-y-0.5 text-xs text-emerald-200/90">
+                <li>✓ <span className="font-medium text-emerald-100">{uploadNotice.filename}</span> — uploadé</li>
+                <li>
+                  ✓{" "}
+                  {uploadNotice.kind === "image"
+                    ? "Image préparée pour l'analyse visuelle"
+                    : uploadNotice.kind === "pdf" && !uploadNotice.parsed
+                      ? "PDF (plan/scan) — pages préparées pour l'analyse visuelle"
+                      : uploadNotice.parsed
+                        ? `Contenu extrait${uploadNotice.pages ? ` · ${uploadNotice.pages} page(s)/feuille(s)` : ""}`
+                        : "Fichier stocké (contenu non extractible automatiquement)"}
+                </li>
+                <li>✓ Prêt — pose ta question sur ce document, {agent.name} l&apos;analyse dans sa réponse.</li>
+              </ul>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
 
@@ -734,15 +942,21 @@ export function ChatUI({
                 <span
                   key={d.documentId}
                   className="inline-flex items-center gap-1.5 rounded border border-border bg-surface-elevated py-1 pl-1.5 pr-1 text-xs"
-                  title={d.parsed ? `${d.kindLabel ?? d.kind ?? ""}${d.pages ? ` · ${d.pages} page(s)` : ""}` : (d.kindLabel ?? "Stocké · non lu")}
+                  title={
+                    d.kind === "image"
+                      ? "Image — analysée visuellement par le modèle"
+                      : d.parsed
+                        ? `${d.kindLabel ?? d.kind ?? ""}${d.pages ? ` · ${d.pages} page(s)` : ""}`
+                        : (d.kindLabel ?? "Stocké · non lu")
+                  }
                 >
                   <span className="rounded bg-muted px-1 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
                     {fileExt(d.filename)}
                   </span>
                   <span className="max-w-[180px] truncate">{d.filename}</span>
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${d.parsed ? "bg-emerald-500" : "bg-amber-500"}`}
-                    title={d.parsed ? "Lu" : "Non lu"}
+                    className={`h-1.5 w-1.5 rounded-full ${d.parsed || d.kind === "image" ? "bg-emerald-500" : "bg-amber-500"}`}
+                    title={d.kind === "image" ? "Analysée (vision)" : d.parsed ? "Lu" : "Non lu"}
                     aria-hidden
                   />
                   <button
@@ -844,23 +1058,31 @@ export function ChatUI({
               className="input-field max-h-40 min-h-[40px] flex-1 resize-none py-2.5 leading-tight"
               disabled={isStreaming}
             />
-            <button
-              type="submit"
-              disabled={isStreaming || !input.trim()}
-              className="btn-primary h-10 px-4"
-              title="Envoyer (Entrée)"
-            >
-              {isStreaming ? (
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
+            {isStreaming ? (
+              <button
+                type="button"
+                onClick={stopStreaming}
+                className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 font-medium text-red-300 transition hover:bg-red-500/20"
+                title="Arrêter la génération (le texte déjà produit est conservé)"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
+                  <rect x="6" y="6" width="12" height="12" rx="2" />
                 </svg>
-              ) : (
+                Stop
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={!input.trim()}
+                className="btn-primary h-10 px-4"
+                title="Envoyer (Entrée)"
+              >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="m22 2-7 20-4-9-9-4Z" />
                   <path d="M22 2 11 13" />
                 </svg>
-              )}
-            </button>
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -884,6 +1106,20 @@ export function ChatUI({
               <span className="mx-1">·</span>
               <kbd className="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px]">@</kbd> mentionner un agent
             </span>
+            <button
+              type="button"
+              onClick={() => setDiagOpen(true)}
+              className="ml-auto inline-flex items-center gap-1 rounded px-1.5 py-0.5 transition hover:bg-muted hover:text-foreground"
+              title="Vérifier que LM Studio communique avec l'application"
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  llmOnline === false ? "bg-amber-500" : llmOnline ? "bg-emerald-500" : "bg-muted-foreground"
+                }`}
+                aria-hidden
+              />
+              Tester LM Studio
+            </button>
           </div>
         </form>
       </section>
@@ -989,6 +1225,7 @@ function ConversationsSidebar({
   currentId,
   onNewConversation,
   onDelete,
+  onRename,
   accentColor,
   open,
   onOpenChange,
@@ -1003,6 +1240,7 @@ function ConversationsSidebar({
   currentId: string | null;
   onNewConversation: () => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, currentTitle: string | null) => void;
   accentColor: string;
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1158,6 +1396,16 @@ function ConversationsSidebar({
                             type="button"
                             onClick={() => {
                               setOpenMenuId(null);
+                              onRename(c.id, c.title);
+                            }}
+                            className="block w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent"
+                          >
+                            Renommer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuId(null);
                               onDelete(c.id);
                             }}
                             className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
@@ -1216,8 +1464,13 @@ function MessageBubble({
     return (
       <div className="flex justify-end animate-slide-up">
         <div className="max-w-[85%] rounded-2xl rounded-br-md bg-brand-500/15 px-4 py-3 text-sm text-foreground ring-1 ring-brand-500/30">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-brand-400/80">
-            Vous
+          <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-brand-400/80">
+            <span>Vous</span>
+            {message.createdAt && (
+              <span className="font-normal tabular-nums opacity-70">
+                {formatTime(message.createdAt)}
+              </span>
+            )}
           </div>
           <div className="whitespace-pre-wrap leading-relaxed">
             {message.content || "…"}
@@ -1246,6 +1499,11 @@ function MessageBubble({
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           <span>{agentName}</span>
+          {message.createdAt && (
+            <span className="font-normal tabular-nums opacity-70">
+              {formatTime(message.createdAt)}
+            </span>
+          )}
           {hasContent && (
             <div className="ml-auto flex items-center gap-1 normal-case">
               <button
@@ -1284,35 +1542,53 @@ function MessageBubble({
         </div>
         <div className="rounded-2xl rounded-tl-md border border-border bg-surface/60 px-4 py-3">
           {hasActiveTools && (
-            <div className="mb-2 space-y-1">
-              {message.activeTools!.map((t) => (
-                <div key={t.id} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  {t.status === "running" ? (
-                    <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-emerald-400">
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                  )}
-                  <span>{t.label}…</span>
-                </div>
-              ))}
+            <div className="mb-2 space-y-1.5">
+              {message.activeTools!.map((t) => {
+                // Document generation is the long one — show a prominent, reassuring
+                // loading card so the user doesn't think the app froze/crashed.
+                if (t.name === "generer_rapport" && t.status === "running") {
+                  return (
+                    <div
+                      key={t.id}
+                      className="flex items-center gap-3 rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2.5 text-xs text-brand-200"
+                    >
+                      <svg className="h-4 w-4 shrink-0 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
+                      </svg>
+                      <div className="min-w-0">
+                        <div className="font-semibold">Génération du document en cours…</div>
+                        <div className="opacity-80">
+                          Mise en forme du livrable — cela peut prendre un moment, ne ferme pas la page.
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={t.id} className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    {t.status === "running" ? (
+                      <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
+                      </svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 text-emerald-400">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    )}
+                    <span>{t.label}…</span>
+                  </div>
+                );
+              })}
             </div>
           )}
           {hasContent ? (
             <div className="prose-chat">
               <ReactMarkdown
-                components={{
-                  a: ({ href, children, ...props }) => (
-                    <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-                      {children}
-                    </a>
-                  ),
-                }}
+                remarkPlugins={CHAT_REMARK_PLUGINS}
+                rehypePlugins={CHAT_REHYPE_PLUGINS}
+                components={CHAT_MARKDOWN_COMPONENTS}
               >
-                {message.content}
+                {normalizeMathDelimiters(message.content)}
               </ReactMarkdown>
             </div>
           ) : !hasActiveTools ? (
@@ -1397,8 +1673,13 @@ function EmptyState({
       >
         <AgentIcon slug={agent.slug} className="h-8 w-8" />
       </div>
-      <h2 className="text-lg font-semibold">Démarrer une analyse</h2>
-      <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+      <h2 className="text-xl font-semibold">{agent.name}</h2>
+      {agent.tagline && (
+        <p className="mt-1 max-w-md text-sm" style={{ color: accentColor }}>
+          {agent.tagline}
+        </p>
+      )}
+      <p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
         {llmOffline ? (
           <>
             <strong className="text-amber-300">LM Studio est hors-ligne.</strong>{" "}
@@ -1406,14 +1687,24 @@ function EmptyState({
           </>
         ) : (
           <>
-            Posez une question, joignez un document depuis la barre de saisie, ou
-            sélectionnez une compétence ci-dessous.
+            👋 Bonjour, je suis votre <strong className="text-foreground">{agent.name}</strong>.
+            Je peux <strong className="text-foreground">analyser vos documents</strong> (plans, PDF,
+            Excel, Word, images), réaliser les <strong className="text-foreground">calculs de mon
+            domaine</strong> et produire des <strong className="text-foreground">livrables</strong>{" "}
+            (PDF, Word, Excel, PowerPoint).
+            <br />
+            Choisissez une compétence ci-dessous, posez votre question, ou joignez un document —{" "}
+            <strong className="text-foreground">je suis prêt, j&apos;attends votre demande.</strong>
           </>
         )}
       </p>
 
       {suggestions.length > 0 && (
-        <div className="mt-8 grid w-full max-w-2xl gap-2 sm:grid-cols-2">
+        <>
+          <div className="mt-7 mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Ce que je peux faire pour vous
+          </div>
+          <div className="grid w-full max-w-2xl gap-2 sm:grid-cols-2">
           {suggestions.map((s) => {
             const isActive = activeSkillId === s.id;
             return (
@@ -1439,7 +1730,8 @@ function EmptyState({
               </button>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

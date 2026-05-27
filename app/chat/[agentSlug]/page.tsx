@@ -33,6 +33,7 @@ export default async function ChatPage({
     role: "user" | "assistant";
     content: string;
     citations?: Array<{ source_ref: string; source_url: string | null }>;
+    createdAt?: string;
   }> = [];
   let initialConversationId: string | null = null;
   let currentProjectId: string | null = null;
@@ -52,6 +53,7 @@ export default async function ChatPage({
           role: m.role as "user" | "assistant",
           content: m.content.text,
           citations: m.citations,
+          createdAt: m.createdAt.toISOString(),
         }));
       const conv = await db.query.conversations.findFirst({
         where: eq(schema.conversations.id, searchParams.conversationId),
