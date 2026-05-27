@@ -2,34 +2,17 @@ import pino, { type Logger } from "pino";
 
 const isDev = process.env.NODE_ENV !== "production";
 
-const baseOptions: pino.LoggerOptions = {
+// Pino is intentionally configured without a transport: pino transports use
+// worker threads (`thread-stream`) which Next.js's webpack bundling cannot
+// resolve reliably (it tries to require `.next/server/vendor-chunks/lib/worker.js`).
+// Plain JSON to stdout is fast, predictable, and works in both `next dev` and
+// `next start`. For pretty output in dev, pipe through pino-pretty:
+//   npm run dev | npx pino-pretty
+
+export const logger: Logger = pino({
   level: process.env.LOG_LEVEL ?? (isDev ? "debug" : "info"),
   base: { app: "chatbot-btp" },
-};
-
-// pino-pretty is only loaded in dev (and only if installed).
-function createLogger(): Logger {
-  if (isDev) {
-    try {
-      return pino({
-        ...baseOptions,
-        transport: {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "HH:MM:ss.l",
-            ignore: "pid,hostname,app",
-          },
-        },
-      });
-    } catch {
-      // fall through to default
-    }
-  }
-  return pino(baseOptions);
-}
-
-export const logger = createLogger();
+});
 
 export function childLogger(bindings: Record<string, unknown>): Logger {
   return logger.child(bindings);

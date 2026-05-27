@@ -4,7 +4,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig = {
   reactStrictMode: true,
   experimental: {
-    serverComponentsExternalPackages: ["better-sqlite3", "sqlite-vec"],
+    serverComponentsExternalPackages: [
+      "better-sqlite3",
+      "sqlite-vec",
+      "pino",
+      "pino-pretty",
+      "thread-stream",
+    ],
     serverActions: { bodySizeLimit: "25mb" },
   },
 };
