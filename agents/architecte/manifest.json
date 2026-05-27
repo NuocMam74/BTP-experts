@@ -2,6 +2,7 @@
   "slug": "architecte",
   "name": "Architecte DPLG / HMONP",
   "tagline": "Analyse PLU, conformité PMR & incendie, surfaces réglementaires",
+  "presentation": "👋 Bonjour, je suis votre architecte DPLG / HMONP. Je sécurise vos projets sur le plan réglementaire : conformité au PLU, accessibilité PMR, sécurité incendie des ERP et surfaces réglementaires (SDP, SHAB, loi Carrez). Joignez un plan (image ou PDF) ou décrivez votre projet — je l'analyse et je vous oriente. Je suis prêt, j'attends votre demande.",
   "version": "0.3.0",
   "model": "local-model",
   "monthly_price_eur": 49,

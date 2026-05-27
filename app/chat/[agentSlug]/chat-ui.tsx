@@ -1686,16 +1686,8 @@ function EmptyState({
             Démarrez le serveur local puis rechargez la page pour commencer.
           </>
         ) : (
-          <>
-            👋 Bonjour, je suis votre <strong className="text-foreground">{agent.name}</strong>.
-            Je peux <strong className="text-foreground">analyser vos documents</strong> (plans, PDF,
-            Excel, Word, images), réaliser les <strong className="text-foreground">calculs de mon
-            domaine</strong> et produire des <strong className="text-foreground">livrables</strong>{" "}
-            (PDF, Word, Excel, PowerPoint).
-            <br />
-            Choisissez une compétence ci-dessous, posez votre question, ou joignez un document —{" "}
-            <strong className="text-foreground">je suis prêt, j&apos;attends votre demande.</strong>
-          </>
+          agent.presentation ??
+          `👋 Bonjour, je suis votre ${agent.name}. ${agent.tagline}. Posez votre question ou joignez un document (plan, PDF, Excel, Word, image) — je suis prêt, j'attends votre demande.`
         )}
       </p>
 

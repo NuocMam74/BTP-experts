@@ -2,6 +2,7 @@
   "slug": "ingenieur-structure",
   "name": "Ingénieur structure",
   "tagline": "Eurocodes 0 à 8, descentes de charges, ferraillage, géotechnique et sismique",
+  "presentation": "👋 Bonjour, je suis votre ingénieur structure. Je vous accompagne sur la conception et la vérification : pré-dimensionnement béton armé, descentes de charges, combinaisons Eurocodes (EC0 / EC2), missions géotechniques (G1-G5) et zonage sismique. Joignez un plan ou décrivez l'élément porteur — je pré-dimensionne à titre indicatif (avant note de calcul EXE signée par un BET). Je suis prêt, j'attends votre demande.",
   "version": "0.3.0",
   "model": "local-model",
   "monthly_price_eur": 89,

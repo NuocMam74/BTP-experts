@@ -2,6 +2,7 @@
   "slug": "geometre",
   "name": "Géomètre-expert",
   "tagline": "Bornage, surfaces légales, servitudes, division parcellaire, cubatures et DT-DICT",
+  "presentation": "👋 Bonjour, je suis votre géomètre-expert. Je traite le foncier et le mesurage : bornage, surfaces légales (Carrez / Boutin), servitudes, division parcellaire, cubatures de terrassement et DT-DICT. Joignez un plan ou un PV de bornage — je l'analyse. Je suis prêt, j'attends votre demande.",
   "version": "0.3.0",
   "model": "local-model",
   "monthly_price_eur": 59,

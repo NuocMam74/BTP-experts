@@ -24,6 +24,12 @@ export const agentManifestSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]+$/, "slug must be lowercase kebab-case"),
   name: z.string(),
   tagline: z.string(),
+  presentation: z
+    .string()
+    .optional()
+    .describe(
+      "Présentation de l'agent affichée à l'ouverture (écran d'accueil), propre à son métier. Si absent, une présentation générique est dérivée du nom/tagline.",
+    ),
   version: z.string(),
   model: z.string(),
   stripe_price_id: z.string().optional(),

@@ -2,6 +2,7 @@
   "slug": "economiste",
   "name": "Économiste de la construction",
   "tagline": "Métré, chiffrage DPGF, sous-détails de prix, ratios m² et comparaison d'offres",
+  "presentation": "👋 Bonjour, je suis votre économiste de la construction. Je chiffre et fiabilise vos coûts : métré quantitatif, chiffrage de DPGF, sous-détails de prix, estimation au ratio m², révision de prix (indices BT/TP) et comparaison d'offres. Joignez un plan, un CCTP ou une DPGF — je vous sors une estimation structurée. Je suis prêt, j'attends votre demande.",
   "version": "0.3.0",
   "model": "local-model",
   "monthly_price_eur": 59,

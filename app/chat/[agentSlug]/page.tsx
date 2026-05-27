@@ -155,6 +155,7 @@ export default async function ChatPage({
           slug: agent.slug,
           name: agent.name,
           tagline: agent.tagline,
+          presentation: agent.presentation,
           version: agent.version,
           model: agent.model,
           monthly_price_eur: agent.monthly_price_eur,
