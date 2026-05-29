@@ -277,6 +277,11 @@ export function ChatUI({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // True when the viewport is at the bottom — we only auto-scroll then, so the
+  // user can scroll up to re-read previous content while generation continues.
+  const autoScrollRef = useRef(true);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
 
   // Last user prompt (kept so the regenerate button knows what to re-send)
   const lastUserPromptRef = useRef<string | null>(null);
@@ -288,8 +293,27 @@ export function ChatUI({
     abortRef.current?.abort();
   }, []);
 
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior });
+    autoScrollRef.current = true;
+    setShowScrollToBottom(false);
+  }, []);
+
+  function handleMessagesScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const atBottom = distanceFromBottom < 80;
+    autoScrollRef.current = atBottom;
+    setShowScrollToBottom(!atBottom);
+  }
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (!autoScrollRef.current) return;
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   // useState only seeds from props on mount. After router.refresh() the server
@@ -808,7 +832,7 @@ export function ChatUI({
         projects={projects}
       />
 
-      <section className="card-elevated flex min-h-[70vh] flex-col overflow-hidden rounded-2xl">
+      <section className="card-elevated relative flex min-h-[70vh] flex-col overflow-hidden rounded-2xl">
         <div className="flex items-center justify-between border-b border-border/60 px-4 py-2.5 lg:hidden">
           <button
             type="button"
@@ -872,7 +896,11 @@ export function ChatUI({
           />
         )}
 
-        <div className="scrollbar-thin flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleMessagesScroll}
+          className="scrollbar-thin relative flex-1 space-y-5 overflow-y-auto p-5 sm:p-6"
+        >
           {messages.length === 0 ? (
             <EmptyState
               agent={agent}
@@ -931,6 +959,35 @@ export function ChatUI({
           )}
           <div ref={messagesEndRef} />
         </div>
+
+        {showScrollToBottom && (
+          <button
+            type="button"
+            onClick={() => scrollToBottom("smooth")}
+            className="absolute bottom-28 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-xs font-medium text-foreground shadow-md transition hover:bg-accent"
+            aria-label="Revenir en bas"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-3.5 w-3.5"
+            >
+              <path d="M12 5v14M5 12l7 7 7-7" />
+            </svg>
+            Revenir en bas
+            {isStreaming && (
+              <span
+                className="ml-1 h-1.5 w-1.5 animate-pulse-glow rounded-full"
+                style={{ backgroundColor: accent.color }}
+                aria-hidden
+              />
+            )}
+          </button>
+        )}
 
         {docs.length > 0 && (
           <div className="border-t border-border bg-surface px-4 py-2">

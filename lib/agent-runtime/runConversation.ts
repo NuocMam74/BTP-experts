@@ -60,6 +60,11 @@ export function streamAgentResponse({
     // agent before it cited its sources or produced the deliverable.
     stopWhen: stepCountIs(12),
     temperature: 0.2,
+    // Local quantized models (Qwen2.5-VL, Llama-3, etc.) regularly drift into
+    // verbatim paragraph loops on long French outputs. These penalties make
+    // re-emitting the same token sequence costlier and break the loop.
+    frequencyPenalty: 0.6,
+    presencePenalty: 0.3,
     abortSignal,
     onFinish: async (result) => {
       if (onFinish) {

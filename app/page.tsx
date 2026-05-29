@@ -6,37 +6,66 @@ export default async function HomePage() {
   const totalSkills = agents.reduce((sum, a) => sum + a.skills.length, 0);
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <header className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Catalogue d&apos;agents
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Agents IA spécialisés par métier du bâtiment et des travaux publics.
-            Sélectionnez un agent pour démarrer une analyse.
-          </p>
+    <main className="mx-auto max-w-7xl px-6 py-12">
+      <section className="mb-12">
+        <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full bg-brand-500"
+            aria-hidden
+          />
+          Plateforme d&apos;agents BTP
         </div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <Stat label="Agents" value={agents.length.toString()} />
-          <span className="text-border">|</span>
-          <Stat label="Compétences" value={totalSkills.toString()} />
-          <span className="text-border">|</span>
-          <Stat label="Formats" value="PDF · DOCX · XLSX · PPTX" mono />
-        </div>
-      </header>
+        <h1 className="mt-4 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
+          Des experts métiers du bâtiment{" "}
+          <span className="text-brand-500">à portée de chat</span>.
+        </h1>
+        <p className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          Six agents IA spécialisés — architecture, MOEX, économie,
+          géomètre, structure, comptabilité BTP — entraînés sur les
+          référentiels français (DTU, Eurocodes, CCAG, RE2020, BOFIP).
+          Posez une question, joignez un plan ou un PDF, recevez une
+          analyse sourcée et un livrable prêt à transmettre.
+        </p>
 
-      <section id="agents">
+        <div className="mt-7 flex flex-wrap items-stretch gap-3">
+          <HeroStat label="Agents" value={agents.length.toString()} />
+          <HeroStat label="Compétences" value={totalSkills.toString()} />
+          <HeroStat
+            label="Formats livrés"
+            value="PDF · DOCX · XLSX · PPTX"
+            mono
+          />
+          <HeroStat label="Hébergement" value="100 % local" />
+        </div>
+      </section>
+
+      <section id="agents" className="scroll-mt-24">
+        <header className="mb-5 flex items-end justify-between gap-4 border-b border-border pb-3">
+          <div>
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+              Catalogue
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Sélectionnez l&apos;agent dont vous avez besoin pour ouvrir une
+              session d&apos;analyse.
+            </p>
+          </div>
+          <div className="hidden text-[11px] text-muted-foreground sm:block">
+            {agents.length} agent{agents.length > 1 ? "s" : ""} disponible
+            {agents.length > 1 ? "s" : ""}
+          </div>
+        </header>
+
         {agents.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border bg-surface-elevated p-12 text-center text-sm text-muted-foreground">
             Aucun agent enregistré. Ajoutez un manifest dans{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
               agents/&lt;slug&gt;/manifest.json
             </code>
             .
           </div>
         ) : (
-          <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {agents.map((agent) => (
               <li key={agent.slug}>
                 <AgentCard
@@ -51,26 +80,11 @@ export default async function HomePage() {
           </ul>
         )}
       </section>
-
-      <section className="mt-10 grid gap-3 sm:grid-cols-3">
-        <InfoBlock
-          title="Sources sourcées"
-          body="Codes, arrêtés, normes, DTU, Eurocodes et BOFIP indexés en local. Chaque affirmation pointe l'article exact."
-        />
-        <InfoBlock
-          title="Analyse de documents"
-          body="PDF, Word, Excel, CSV, texte, Markdown, image. Le contenu textuel est extrait et utilisé en contexte."
-        />
-        <InfoBlock
-          title="Livrables exportables"
-          body="Rapports, notes, tableaux et présentations générés à la demande, prêts pour transmission MOA."
-        />
-      </section>
     </main>
   );
 }
 
-function Stat({
+function HeroStat({
   label,
   value,
   mono,
@@ -80,26 +94,17 @@ function Stat({
   mono?: boolean;
 }) {
   return (
-    <span className="inline-flex items-baseline gap-1.5">
-      <span className="text-muted-foreground/80">{label}</span>
+    <div className="card-elevated flex min-w-[140px] flex-col gap-0.5 rounded-lg px-4 py-3">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        {label}
+      </span>
       <span
-        className={`font-medium text-foreground ${mono ? "font-mono text-[11px]" : ""}`}
+        className={`text-base font-semibold text-foreground ${
+          mono ? "font-mono text-[12px] tracking-tight" : ""
+        }`}
       >
         {value}
       </span>
-    </span>
-  );
-}
-
-function InfoBlock({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="rounded-md border border-border bg-surface-elevated p-4">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </div>
-      <p className="mt-1.5 text-sm leading-relaxed text-foreground/80">
-        {body}
-      </p>
     </div>
   );
 }

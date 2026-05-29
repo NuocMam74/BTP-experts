@@ -42,10 +42,17 @@ export function AgentCard({
   return (
     <>
       <article
-        className={`card-elevated card-hover relative flex h-full flex-col overflow-hidden rounded-md ${
+        className={`card-elevated card-hover group relative flex h-full flex-col overflow-hidden rounded-xl ${
           navigating ? "opacity-70" : ""
         }`}
       >
+        <div
+          className="h-1 w-full"
+          style={{
+            background: `linear-gradient(90deg, ${accent.color}, ${accent.color}55 70%, transparent)`,
+          }}
+          aria-hidden
+        />
         <Link
           href={`/chat/${slug}`}
           prefetch
@@ -54,29 +61,30 @@ export function AgentCard({
         >
           <div className="mb-4 flex items-start justify-between gap-3">
             <div
-              className="inline-flex h-9 w-9 items-center justify-center rounded border"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg border ring-1 ring-inset transition-transform group-hover:scale-[1.04]"
               style={{
                 color: accent.color,
                 borderColor: `${accent.color}40`,
-                backgroundColor: `${accent.color}10`,
+                backgroundColor: `${accent.color}12`,
+                ['--tw-ring-color' as string]: `${accent.color}22`,
               }}
             >
-              <AgentIcon slug={slug} className="h-4 w-4" />
+              <AgentIcon slug={slug} className="h-5 w-5" />
             </div>
             <div className="text-right">
               <div className="font-mono text-sm font-medium text-foreground">
                 {priceEur} €
               </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                /mois
+                / mois
               </div>
             </div>
           </div>
 
-          <h3 className="text-base font-semibold leading-snug text-foreground">
+          <h3 className="text-[17px] font-semibold leading-snug text-foreground">
             {name}
           </h3>
-          <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="mt-1.5 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
             {tagline}
           </p>
 
@@ -94,7 +102,10 @@ export function AgentCard({
           </dl>
 
           <div className="mt-4 flex items-center justify-between border-t border-border pt-3 text-xs">
-            <span className="text-muted-foreground">
+            <span
+              className="font-medium"
+              style={{ color: navigating ? undefined : accent.color }}
+            >
               {navigating ? "Ouverture…" : "Ouvrir l’agent"}
             </span>
             {navigating ? (

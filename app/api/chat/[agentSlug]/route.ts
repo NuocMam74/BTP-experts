@@ -37,6 +37,31 @@ function sseEncode(event: string, data: unknown): Uint8Array {
   return new TextEncoder().encode(payload);
 }
 
+// Quantized local models occasionally degenerate into emitting the same
+// paragraph 10–100+ times until the context window runs out. Detection rule:
+// look at the trailing ~6 000 chars of the answer, split into "signatures"
+// (trimmed lines, digits normalised so "70." / "71." collapse to "#."), and
+// if any signature ≥40 chars appears ≥4 times → we're stuck in a loop.
+const LOOP_TAIL_CHARS = 6000;
+const LOOP_MIN_LINE_LEN = 40;
+const LOOP_THRESHOLD = 4;
+function detectRepetitionLoop(text: string): boolean {
+  if (text.length < 800) return false;
+  const tail = text.slice(-LOOP_TAIL_CHARS);
+  const sigs = tail
+    .split("\n")
+    .map((l) => l.trim().toLowerCase().replace(/\d+/g, "#"))
+    .filter((l) => l.length >= LOOP_MIN_LINE_LEN);
+  if (sigs.length < LOOP_THRESHOLD * 2) return false;
+  const counts = new Map<string, number>();
+  for (const s of sigs) {
+    const c = (counts.get(s) ?? 0) + 1;
+    if (c >= LOOP_THRESHOLD) return true;
+    counts.set(s, c);
+  }
+  return false;
+}
+
 // Pulls a human-readable message out of whatever the model/provider throws.
 // AI SDK / LM Studio errors arrive as nested plain objects ({ error: { message } }),
 // so a naive String(err) yields "[object Object]" — dig through common shapes.
@@ -241,6 +266,24 @@ export async function POST(
     }
   }
 
+  // Internal controller so the route can also kill generation (e.g. when the
+  // loop detector trips). Combined with the client signal so EITHER source
+  // can abort.
+  const loopAbort = new AbortController();
+  const combinedSignal: AbortSignal =
+    typeof (AbortSignal as unknown as { any?: unknown }).any === "function"
+      ? (AbortSignal as unknown as {
+          any: (signals: AbortSignal[]) => AbortSignal;
+        }).any([req.signal, loopAbort.signal])
+      : (() => {
+          const c = new AbortController();
+          const onAbort = () => c.abort();
+          req.signal.addEventListener("abort", onAbort, { once: true });
+          loopAbort.signal.addEventListener("abort", onAbort, { once: true });
+          return c.signal;
+        })();
+  let loopTripped = false;
+
   const result = streamAgentResponse({
     agent,
     messages: modelMessages,
@@ -248,7 +291,7 @@ export async function POST(
     skillPrompt,
     userId,
     conversationId,
-    abortSignal: req.signal,
+    abortSignal: combinedSignal,
   });
 
   // Stream as SSE so the client can react to tool calls / citations live.
@@ -274,6 +317,29 @@ export async function POST(
               if (delta) {
                 assistantText += delta;
                 safeEnqueue(sseEncode("text", { delta }));
+                // Cheap to call (only scans the trailing window). If the model
+                // is regurgitating the same paragraph, kill the request now —
+                // partial output already streamed is kept and persisted.
+                if (
+                  !loopTripped &&
+                  delta.includes("\n") &&
+                  detectRepetitionLoop(assistantText)
+                ) {
+                  loopTripped = true;
+                  logger.warn(
+                    { agent: agent.slug, conversationId, chars: assistantText.length },
+                    "repetition loop detected — aborting stream",
+                  );
+                  safeEnqueue(
+                    sseEncode("text", {
+                      delta:
+                        "\n\n_⚠️ Génération interrompue : le modèle s'est mis à répéter le même passage. Réessayez ou reformulez votre demande._",
+                    }),
+                  );
+                  assistantText +=
+                    "\n\n_⚠️ Génération interrompue : le modèle s'est mis à répéter le même passage. Réessayez ou reformulez votre demande._";
+                  loopAbort.abort();
+                }
               }
               break;
             }
@@ -346,6 +412,8 @@ export async function POST(
       } catch (err) {
         if (req.signal.aborted) {
           logger.info({ agent: agent.slug }, "chat stream aborted by client");
+        } else if (loopTripped) {
+          logger.info({ agent: agent.slug }, "chat stream stopped by loop guard");
         } else {
           logger.error({ err, agent: agent.slug }, "chat stream crashed");
           safeEnqueue(sseEncode("error", { message: errorMessage(err) }));
