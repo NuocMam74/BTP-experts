@@ -3,7 +3,7 @@
   "name": "Expert-comptable spécialisé BTP",
   "tagline": "TVA travaux, autoliquidation BTP, loi 1975, situations, paie et compte prorata",
   "presentation": "👋 Bonjour, je suis votre expert-comptable spécialisé BTP. Je sécurise vos opérations comptables et fiscales du bâtiment : taux et autoliquidation de TVA travaux, sous-traitance (loi 1975), situations de travaux, compte prorata et paie BTP. Posez votre question ou joignez une facture / situation — je vérifie et je cadre. Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 79,
   "accepted_documents": [
@@ -25,7 +25,14 @@
     { "id": "controle_sous_traitance_1975", "label": "Contrôler une sous-traitance loi 1975", "output_formats": ["docx", "pdf"] },
     { "id": "compte_prorata", "label": "Ventiler un compte prorata", "output_formats": ["xlsx", "pdf"] },
     { "id": "reconnaissance_revenu_avancement", "label": "Reconnaître le revenu à l'avancement (PCG/IFRS 15)", "output_formats": ["xlsx", "docx"] },
-    { "id": "controle_paie_btp", "label": "Contrôler la paie BTP (CIBTP, indemnités, conventions)", "output_formats": ["xlsx", "docx"] }
+    { "id": "controle_paie_btp", "label": "Contrôler la paie BTP (CIBTP, indemnités, conventions)", "output_formats": ["xlsx", "docx"] },
+    { "id": "controle_assurance_decennale_do", "label": "Contrôler les assurances décennale et DO", "output_formats": ["docx", "pdf"] },
+    { "id": "controler_travailleur_detache", "label": "Contrôler le détachement de travailleurs BTP", "output_formats": ["docx", "pdf"] },
+    { "id": "verifier_carte_btp", "label": "Vérifier les Cartes BTP des salariés", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "analyser_tva_immobiliere", "label": "Analyser la TVA immobilière (marchand de biens, VEFA, LASM)", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "gerer_procedure_collective", "label": "Accompagner une procédure collective BTP", "output_formats": ["docx", "pdf"] },
+    { "id": "auditer_provisions_btp", "label": "Auditer les provisions d'une entreprise BTP", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "mobiliser_aides_publiques", "label": "Mobiliser les aides publiques (Bpifrance, CIR, ADEME)", "output_formats": ["docx", "pdf", "xlsx"] }
   ],
   "tools": [
     { "name": "calculer_tva_travaux", "type": "javascript_function" },

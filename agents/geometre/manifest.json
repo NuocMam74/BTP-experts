@@ -3,7 +3,7 @@
   "name": "Géomètre-expert",
   "tagline": "Bornage, surfaces légales, servitudes, division parcellaire, cubatures et DT-DICT",
   "presentation": "👋 Bonjour, je suis votre géomètre-expert. Je traite le foncier et le mesurage : bornage, surfaces légales (Carrez / Boutin), servitudes, division parcellaire, cubatures de terrassement et DT-DICT. Joignez un plan ou un PV de bornage — je l'analyse. Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 59,
   "accepted_documents": [
@@ -44,6 +44,36 @@
       "id": "dt_dict",
       "label": "Aide DT-DICT",
       "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "rediger_pv_bornage",
+      "label": "Rédiger un PV de bornage (amiable ou judiciaire)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "implanter_batiment",
+      "label": "Implanter un bâtiment et piqueter le chantier",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "etablir_dmpc",
+      "label": "Établir un DMPC (modification cadastrale)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "realiser_recolement",
+      "label": "Réaliser un récolement (plan as-built classe A)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "evaluer_bien_immobilier",
+      "label": "Évaluer un bien immobilier (méthodes professionnelles)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "analyser_titres_propriete",
+      "label": "Analyser titres de propriété et historique foncier",
+      "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],
   "tools": [

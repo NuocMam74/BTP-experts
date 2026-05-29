@@ -3,7 +3,7 @@
   "name": "Maître d'œuvre d'exécution (MOEX)",
   "tagline": "Pilotage chantier : DCE, OS, situations, OPR et levée de réserves",
   "presentation": "👋 Bonjour, je suis votre maître d'œuvre d'exécution (MOEX). Je pilote la phase travaux : analyse du DCE, ordres de service, situations et révision de prix (CCAG), OPR et levée de réserves, suivi du planning et contrôle de la sous-traitance (loi 1975). Joignez un document de chantier ou posez votre question — je vous assiste. Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 69,
   "accepted_documents": [
@@ -51,6 +51,46 @@
       "id": "controle_sous_traitance",
       "label": "Contrôler une déclaration de sous-traitance (DC4 / loi 1975)",
       "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "preparer_avenant",
+      "label": "Préparer un avenant (R.2194 CCP / CCAG-Travaux)",
+      "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "preparer_dgd",
+      "label": "Préparer le Décompte Général et Définitif (DGD)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "rediger_memoire_reclamation",
+      "label": "Rédiger un mémoire en réclamation (art. 50 CCAG)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "calculer_penalites_retard",
+      "label": "Calculer et notifier des pénalités de retard",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "analyser_planning_gantt",
+      "label": "Analyser et auditer un planning de chantier (GANTT, PERT)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "decompter_intemperies",
+      "label": "Décompter les intempéries et préparer la prolongation",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "rediger_permis_feu",
+      "label": "Rédiger un permis de feu (travaux à chaud)",
+      "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "controler_doe_diuo",
+      "label": "Contrôler la complétude du DOE et DIUO",
+      "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],
   "tools": [

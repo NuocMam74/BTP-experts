@@ -3,7 +3,7 @@
   "name": "Économiste de la construction",
   "tagline": "Métré, chiffrage DPGF, sous-détails de prix, ratios m² et comparaison d'offres",
   "presentation": "👋 Bonjour, je suis votre économiste de la construction. Je chiffre et fiabilise vos coûts : métré quantitatif, chiffrage de DPGF, sous-détails de prix, estimation au ratio m², révision de prix (indices BT/TP) et comparaison d'offres. Joignez un plan, un CCTP ou une DPGF — je vous sors une estimation structurée. Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 59,
   "accepted_documents": [
@@ -43,6 +43,31 @@
       "id": "ratio_m2",
       "label": "Estimation rapide au m² SDP",
       "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "etudier_marge_entreprise_devis",
+      "label": "Étude de prix entreprise et calcul de marge",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "estimer_cout_exploitation_lcc",
+      "label": "Estimer le coût d'exploitation (Life Cycle Cost)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "analyser_bilan_promoteur",
+      "label": "Analyser le bilan d'une opération de promotion",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "estimer_renovation_energetique",
+      "label": "Estimer une rénovation énergétique avec aides (MPR/CEE/Éco-PTZ)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "analyser_avenant_economique",
+      "label": "Analyser économiquement un avenant ou TS",
+      "output_formats": ["xlsx", "docx", "pdf"]
     }
   ],
   "tools": [

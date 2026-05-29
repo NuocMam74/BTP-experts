@@ -3,7 +3,7 @@
   "name": "Architecte DPLG / HMONP",
   "tagline": "Analyse PLU, conformité PMR & incendie, surfaces réglementaires",
   "presentation": "👋 Bonjour, je suis votre architecte DPLG / HMONP. Je sécurise vos projets sur le plan réglementaire : conformité au PLU, accessibilité PMR, sécurité incendie des ERP et surfaces réglementaires (SDP, SHAB, loi Carrez). Joignez un plan (image ou PDF) ou décrivez votre projet — je l'analyse et je vous oriente. Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 49,
   "accepted_documents": [
@@ -20,7 +20,14 @@
     { "id": "calculer_surfaces", "label": "Calculer SDP / ST / SHAB / Carrez", "output_formats": ["xlsx", "pdf"] },
     { "id": "verifier_erp", "label": "Vérifier classement & règles ERP", "output_formats": ["docx", "pdf"] },
     { "id": "analyser_re2020", "label": "Vérifier une attestation RE2020", "output_formats": ["xlsx", "pdf"] },
-    { "id": "rediger_notice_pc", "label": "Aider à rédiger la notice descriptive PC", "output_formats": ["docx"] }
+    { "id": "rediger_notice_pc", "label": "Aider à rédiger la notice descriptive PC", "output_formats": ["docx"] },
+    { "id": "verifier_securite_incendie_erp", "label": "Vérifier la sécurité incendie ERP (arrêté 25 juin 1980)", "output_formats": ["docx", "pdf"] },
+    { "id": "etude_acoustique_logement", "label": "Étude acoustique d'un logement (NRA)", "output_formats": ["docx", "pdf"] },
+    { "id": "analyser_diagnostic_amiante", "label": "Analyser un diagnostic amiante (DAPP/DTA/RAT)", "output_formats": ["docx", "pdf"] },
+    { "id": "verifier_abf_secteur_protege", "label": "Vérifier un projet en abords MH / SPR (avis ABF)", "output_formats": ["docx", "pdf"] },
+    { "id": "audit_energetique_passoire", "label": "Audit énergétique passoire + plan rénovation + aides", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "verifier_ccmi_garanties", "label": "Vérifier un contrat CCMI et ses garanties", "output_formats": ["docx", "pdf"] },
+    { "id": "cloture_chantier_doe_diuo", "label": "Clôturer un chantier (AOR, DOE, DIUO, DAACT)", "output_formats": ["docx", "pdf", "xlsx"] }
   ],
   "tools": [
     { "name": "calc_surfaces", "type": "javascript_function" },

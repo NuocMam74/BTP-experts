@@ -3,7 +3,7 @@
   "name": "Ingénieur structure",
   "tagline": "Eurocodes 0 à 8, descentes de charges, ferraillage, géotechnique et sismique",
   "presentation": "👋 Bonjour, je suis votre ingénieur structure. Je vous accompagne sur la conception et la vérification : pré-dimensionnement béton armé, descentes de charges, combinaisons Eurocodes (EC0 / EC2), missions géotechniques (G1-G5) et zonage sismique. Joignez un plan ou décrivez l'élément porteur — je pré-dimensionne à titre indicatif (avant note de calcul EXE signée par un BET). Je suis prêt, j'attends votre demande.",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "model": "local-model",
   "monthly_price_eur": 89,
   "accepted_documents": [
@@ -48,6 +48,41 @@
       "id": "points_singuliers",
       "label": "Détecter et qualifier les points singuliers structure",
       "output_formats": ["pdf", "docx"]
+    },
+    {
+      "id": "verifier_combinaisons_eurocodes",
+      "label": "Vérifier les combinaisons d'actions (EN 1990 / EN 1991)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "predim_acier_poutre_poteau",
+      "label": "Pré-dimensionner poutres et poteaux acier (EC3)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "verifier_fondation_superficielle",
+      "label": "Vérifier une fondation superficielle (EC7)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "analyser_seisme_modal",
+      "label": "Analyser le comportement sismique d'un bâtiment (EC8)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "predim_maconnerie",
+      "label": "Pré-dimensionner un mur porteur en maçonnerie (EC6)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "dimensionner_fondation_speciale",
+      "label": "Dimensionner pieux et fondations spéciales",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "diagnostic_structure_existante",
+      "label": "Diagnostiquer une structure existante (EC8-3)",
+      "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],
   "tools": [
