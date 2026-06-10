@@ -108,6 +108,16 @@
       "id": "rediger_cctp_structure",
       "label": "Rédiger et contrôler un CCTP structure",
       "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "evaluer_pathologie_beton",
+      "label": "Évaluer une pathologie du béton et orienter la réparation (NF EN 1504)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "controler_execution_beton",
+      "label": "Contrôler la conformité béton et l'exécution (NF EN 206 / DTU 21)",
+      "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],
   "tools": [

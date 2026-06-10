@@ -92,6 +92,16 @@
       "id": "analyser_expropriation",
       "label": "Plan parcellaire d'expropriation et situation de procédure",
       "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "cadrer_mission_oge",
+      "label": "Cadrer une mission de géomètre-expert (lettre de mission, RGPD)",
+      "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "analyser_fiscalite_fonciere",
+      "label": "Analyser la taxe d'aménagement et la fiscalité foncière",
+      "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],
   "tools": [

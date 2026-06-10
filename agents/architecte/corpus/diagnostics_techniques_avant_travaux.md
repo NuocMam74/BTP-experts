@@ -201,6 +201,53 @@ Obligation pour les biens en **zone d'exposition au bruit** des aérodromes (Pla
 
 Validité : 6 mois.
 
+## Diagnostic PEMD — Produits, Équipements, Matériaux et Déchets
+
+**Source :** Code de l'environnement art. L.541-1, **R.111-43 à R.111-49 CCH** ; **décret 2021-822 du 25 juin 2021** relatif au diagnostic portant sur la gestion des produits, équipements, matériaux et des déchets issus de la démolition ou de la rénovation significative de bâtiments ; **arrêté du 26 juin 2021** (contenu et modalités de transmission). Ce diagnostic a remplacé l'ancien « diagnostic déchets » (décret 2011-610) à compter du **1ᵉʳ janvier 2022**.
+
+### Objet
+
+Le **diagnostic PEMD** vise à favoriser le **réemploi, la réutilisation, le recyclage et la valorisation** des produits, équipements, matériaux et déchets (logique d'**économie circulaire** et hiérarchie des modes de traitement, Code de l'environnement L.541-1). Il identifie ce qui peut être réemployé in situ ou via des filières de réemploi, avant d'envisager la valorisation puis l'élimination.
+
+### Seuils de déclenchement (R.111-43 CCH)
+
+Le diagnostic PEMD est obligatoire avant **démolition** ou **rénovation significative** des bâtiments lorsque :
+
+| Critère de déclenchement | Seuil |
+|---|---|
+| **Surface cumulée de plancher** du bâtiment (ou ensemble de bâtiments) | **> 1 000 m²** |
+| OU le bâtiment a accueilli une **activité agricole, industrielle ou commerciale** | et a été le siège d'une **utilisation, stockage, fabrication ou distribution de substances dangereuses** classées |
+
+> La **rénovation significative** s'entend de travaux **détruisant ou remplaçant au moins une partie majeure du clos/couvert** ou des éléments de second œuvre **dans une proportion d'au moins la moitié de la surface** (R.111-43). En deçà des seuils, le diagnostic PEMD n'est pas obligatoire, mais le **tri des déchets de chantier** (7 flux, Code de l'environnement R.543-280) reste exigé.
+
+### Qui réalise le diagnostic — compétences et indépendance (R.111-46)
+
+- Réalisé par un **professionnel** disposant des compétences requises (expérience/qualification), justifiant d'une **assurance** et d'une **indépendance** vis-à-vis du maître d'ouvrage et des entreprises de travaux.
+- Commandé par le **maître d'ouvrage** **avant** le dépôt de la demande d'autorisation (PC/PD) ou, à défaut, **avant** la consultation des entreprises / le début des travaux.
+
+### Contenu du diagnostic (arrêté du 26 juin 2021)
+
+1. **Identification du bâtiment** (localisation, surface, année, usages successifs).
+2. **Inventaire** des produits, équipements, matériaux et déchets : nature, quantité (estimation), localisation, **état de conservation**.
+3. **Indications sur les possibilités de réemploi** sur le site ou via des filières (qualité, points de vigilance, dépose soignée).
+4. **Estimation de la nature et de la quantité de déchets** qui ne peuvent être réemployés, et orientations vers les **filières de gestion** (réutilisation / recyclage / valorisation / élimination).
+5. **Précautions de dépose** et de stockage pour préserver le potentiel de réemploi.
+
+### Articulation avec les autres repérages
+
+- Le PEMD se **coordonne** avec le **RAAT amiante** (arrêté 12 déc. 2012) et le **repérage plomb avant travaux** : un produit amianté ou plombé est orienté vers les filières réglementées correspondantes (BSDA pour l'amiante), et **non** vers le réemploi.
+- Il alimente le **CCTP** et le **plan de gestion des déchets** du chantier (SOGED), ainsi que les **bordereaux de suivi** (déchets dangereux : BSD/BSDA).
+
+### Dépôt et récépissé (R.111-47 et R.111-48 — plateforme PEMD ADEME)
+
+- Le diagnostic est **transmis** par le maître d'ouvrage au(x) **maître(s) d'œuvre / entreprises** avant travaux.
+- Le diagnostic, puis un **formulaire de récolement** (bilan effectif en fin de travaux), sont **transmis à l'ADEME** via la plateforme dédiée (**[pemd.ademe.fr](https://pemd.ademe.fr)**) ; un **récépissé de dépôt** est délivré et **attestant la transmission**.
+- Le **récépissé** peut être demandé au stade de l'autorisation d'urbanisme / de la consultation des entreprises ; le **formulaire de récolement** est transmis **après réception** des travaux.
+
+### Sanctions
+
+- L'absence de réalisation ou de transmission expose à la **responsabilité du maître d'ouvrage** (manquement aux obligations du CCH/Code de l'environnement). Le non-respect des obligations de **tri et de traçabilité des déchets** est sanctionné au titre du Code de l'environnement (L.541-46 — sanctions pénales en cas de gestion illégale de déchets).
+
 ## Méthodologie pour l'architecte
 
 ### Avant phase travaux

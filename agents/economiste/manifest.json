@@ -93,6 +93,16 @@
       "id": "calculer_tva_travaux",
       "label": "Calculer la TVA sur travaux (20 / 10 / 5,5 %)",
       "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "rediger_cctp",
+      "label": "Rédiger un article / lot de CCTP",
+      "output_formats": ["docx", "pdf"]
+    },
+    {
+      "id": "estimer_remuneration_moe",
+      "label": "Estimer la rémunération de maîtrise d'œuvre / de l'économiste",
+      "output_formats": ["xlsx", "docx", "pdf", "pptx"]
     }
   ],
   "tools": [

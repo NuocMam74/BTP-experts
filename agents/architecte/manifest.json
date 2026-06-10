@@ -30,7 +30,9 @@
     { "id": "cloture_chantier_doe_diuo", "label": "Clôturer un chantier (AOR, DOE, DIUO, DAACT)", "output_formats": ["docx", "pdf", "xlsx"] },
     { "id": "monter_dossier_autorisation", "label": "Monter un dossier d'autorisation d'urbanisme (PC/DP/PA/PD)", "output_formats": ["docx", "pdf"] },
     { "id": "cadrer_mission_honoraires", "label": "Cadrer une mission MOE & estimer les honoraires", "output_formats": ["docx", "xlsx", "pdf"] },
-    { "id": "qualifier_desordre_garantie", "label": "Qualifier un désordre & mobiliser la garantie (GPA/biennale/décennale/DO)", "output_formats": ["docx", "pdf"] }
+    { "id": "qualifier_desordre_garantie", "label": "Qualifier un désordre & mobiliser la garantie (GPA/biennale/décennale/DO)", "output_formats": ["docx", "pdf"] },
+    { "id": "analyser_risques_naturels_site", "label": "Analyser les risques naturels d'un site (PPRN/PPRI, RGA, eaux pluviales, ANC)", "output_formats": ["docx", "pdf"] },
+    { "id": "verifier_exploitation_erp", "label": "Vérifier les obligations d'exploitation d'un ERP (registres, accessibilité, visites, ouverture)", "output_formats": ["docx", "pdf"] }
   ],
   "tools": [
     { "name": "calc_surfaces", "type": "javascript_function" },

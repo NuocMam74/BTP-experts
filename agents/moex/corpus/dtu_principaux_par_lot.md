@@ -78,13 +78,19 @@ Chaque DTU comprend généralement :
 | **DTU 60.32 et 60.33** | Canalisations PVC évacuation | Canalisations PVC |
 | **DTU 60.5** | Canalisations cuivre | Tubes cuivre |
 | **DTU 61.1** | Installations de gaz dans les locaux d'habitation | Gaz domestique |
+| **DTU 26.2** | Chapes et dalles à base de liants hydrauliques | Chapes, planéité, désolidarisation |
+| **DTU 26.2/52.1** | Mise en œuvre des sous-couches isolantes sous chape / dalle | Chapes flottantes acoustiques |
 | **DTU 64.1** | Mise en œuvre des dispositifs d'assainissement non collectif | ANC |
 | **DTU 65.10** | Canalisations d'eau chaude ou froide sous pression | Réseaux eau |
 | **DTU 65.11** | Dispositifs de sécurité des installations de chauffage central | Sécurité chauffage |
 | **DTU 65.12** | Réalisation des installations de capteurs solaires plans à circulation de liquide pour le chauffage et la production d'eau chaude sanitaire | Solaire thermique |
 | **DTU 65.16** | Mise en œuvre de pompes à chaleur | PAC |
+| **DTU 65.3** | Installations de sous-stations de chauffage urbain | Sous-stations CU |
+| **DTU 65.20** | Stockage de combustibles liquides | Cuves fioul |
 | **DTU 68.1 et 68.3** | Ventilation mécanique | VMC |
 | **DTU 70.1** | Installations électriques | NFC 15-100 |
+| **NF P01-012 / NF P01-013** | Garde-corps et rampes | Dimensionnel + efforts |
+| **NF EN 81-20 / EN 81-50** | Ascenseurs (règles de sécurité) | Directive 2014/33/UE |
 
 ## DTU clés — détail des prescriptions principales
 
@@ -167,6 +173,57 @@ Chaque DTU comprend généralement :
   - Couloir : 1
 - 1 prise RJ45 cat 6 par pièce principale (logement)
 
+### DTU 26.2 (chapes et dalles — planéité)
+
+- Domaine : **chapes** (adhérentes, désolidarisées, flottantes) et dalles à base de **liants hydrauliques**, support de revêtement de sol.
+- **Tolérances de planéité** (sous règle) : selon la **classe** visée et le type de revêtement à recevoir — usuellement **5 à 7 mm sous la règle de 2 m** pour une planéité courante, **3 mm sous la règle de 0,20 m** pour la planéité locale *(à revérifier selon l'édition et la classe contractuelle)*.
+- **Épaisseurs minimales** : chape **adhérente** ≥ 3 cm ; chape **désolidarisée** ≥ 4 cm ; chape **flottante** (sur isolant) ≥ 4 à 5 cm selon sollicitations.
+- **Joints** : joints de **fractionnement** (≈ tous les 40 m² / longueur ≤ 8 m), joints **périphériques** (désolidarisation des parois), respect des **joints de structure**.
+- **Délai de séchage** avant pose du revêtement (humidité résiduelle) : à vérifier (bombe à carbure) — un revêtement posé sur chape trop humide = désordre fréquent.
+- **Chape flottante acoustique** : sous-couche isolante (DTU 52.10 / 26.2) pour traiter les bruits d'impact (cf. réglementation acoustique NRA).
+
+### DTU 65.x (chauffage / CVC — principes)
+
+- **DTU 65.10** : canalisations d'eau **chaude ou froide sous pression** — pose, supportage, dilatation, calorifuge.
+- **DTU 65.11** : **dispositifs de sécurité** des installations de chauffage central à eau chaude — **soupape de sécurité**, vase d'expansion, dispositifs anti-surchauffe (sécurité **obligatoire**).
+- **DTU 65.12** : capteurs **solaires** thermiques ; **DTU 65.16** : **pompes à chaleur** ; **DTU 68.3** : **VMC** (étanchéité des réseaux, débits, caissons).
+- Principes de contrôle MOEX : **équilibrage** des réseaux (débits, T° de départ/retour), **calorifuge** des réseaux (classes), **organes de sécurité** présents et tarés, **désembouage** / mise en eau, **PV d'essais** (cf. essais COPREC — fiche `reception_daact_essais_coprec.md`).
+- **Plancher chauffant** (PCBT) : DTU 65.14 (en eau) — espacement, pas de pose, sondes, mise en chauffe progressive.
+
+### Garde-corps — NF P01-012 / NF P01-013
+
+- **NF P01-012** : règles de sécurité **dimensionnelles** des garde-corps et rampes.
+  - **Hauteur minimale** : **1,00 m** (garde-corps vertical) ; tolérance ramenée à ≈ 0,80 m si épaisseur de l'appui ≥ 50 cm.
+  - **Remplissage** : éléments **infranchissables** par un enfant — **espacement ≤ 11 cm** (verticaux) ; partie basse pleine ou barreaudée resserrée ; **non escaladable** (pas de lisses horizontales franchissables en partie basse).
+  - **Hauteur de l'allège** / zone de stationnement normal à protéger.
+- **NF P01-013** : **essais** et **efforts** — résistance aux **efforts horizontaux** (selon catégorie de bâtiment : ex. **1,0 kN/m** en habitation/courant, valeurs majorées en ERP / lieux à forte fréquentation *(à revérifier selon la norme et l'usage)*).
+- Vigilance MOEX : garde-corps **non conforme** (hauteur, espacement, lisses escaladables, scellement) = **réserve de sécurité prioritaire** (risque de chute de personnes).
+
+### ITE / ETICS (isolation thermique par l'extérieur)
+
+- Les **procédés ETICS** (enduits sur isolant) et l'**ITE** sous bardage ne relèvent **pas** d'un NF DTU unique mais d'**Avis Techniques (ATec)** / **Documents Techniques d'Application (DTA)** délivrés par le **CSTB** (et **ETE** au niveau européen).
+- Mise en œuvre **strictement conforme** au **DTA du procédé** : nature et épaisseur de l'isolant, mode de fixation (collé / calé-chevillé / fixé mécaniquement), **armature** (treillis), sous-enduit, finition, **points singuliers** (appuis, tableaux, jonctions, soubassement, joints de dilatation).
+- **Résistance au feu / propagation** : règles de l'IT 249 (façades) pour les **bâtiments concernés** (recoupements, bandes filantes).
+- Vigilance MOEX : **chevillage** (nombre/type selon support), **traitement des points singuliers** (entrée d'eau), **compatibilité** isolant/enduit, **planéité** du support — désordres fréquents par non-respect du DTA.
+
+### Ascenseurs — Directive 2014/33/UE, EN 81-20 / EN 81-50
+
+- Les **ascenseurs** relèvent de la **Directive 2014/33/UE** (mise sur le marché — marquage **CE**) et des normes harmonisées **NF EN 81-20** (règles de sécurité construction/installation) et **NF EN 81-50** (méthodes de calcul et essais).
+- **Examen CE** / attestation par un **organisme notifié** ; **déclaration UE de conformité** et **marquage CE** de l'installation.
+- Contrôle MOEX / réception : **PV d'essais** de l'installateur, **gaine** et **réservations** conformes, **précisions d'arrêt**, **dispositifs de sécurité** (parachute, limiteur de vitesse, dispositif anti-dérive), **accessibilité** (cabine, commandes — CCH), **contrôle technique** / vérification avant mise en service.
+- Maintenance et contrôles périodiques obligatoires (Code de la construction et de l'habitation — entretien des ascenseurs).
+
+### VRD / assainissement (DTU 64.1 ANC + principes réseaux)
+
+- **DTU 64.1** : **assainissement non collectif (ANC)** — dimensionnement de la filière (fosse toutes eaux + traitement : tranchées d'épandage, filtre à sable, etc.) selon **nombre d'équivalents-habitants** et **nature du sol** (test de perméabilité), implantation (distances aux limites, puits, habitation), **ventilation** de la fosse. Soumis au **SPANC** (contrôle).
+- **Réseaux EU / EP** (assainissement collectif) — principes :
+  - **séparation** des réseaux **eaux usées (EU)** et **eaux pluviales (EP)** en système séparatif ;
+  - **pentes** d'écoulement minimales (usuellement **≥ 1 %**, à adapter au diamètre et au débit), regards de visite aux changements de direction / jonctions ;
+  - **canalisations** (PVC, fonte, béton) posées sur **lit de pose** (sable), enrobage, grillage avertisseur, **épreuve d'étanchéité** ;
+  - **tampons** et **regards** classés selon la **charge** (classes de résistance B125 / C250 / D400 selon zone piétonne / chaussée).
+- **Eaux pluviales** : gestion à la parcelle (infiltration, rétention, noue, bassin) de plus en plus imposée par les règlements locaux d'urbanisme / d'assainissement.
+- Vigilance MOEX : **épreuves d'étanchéité** des réseaux (essais COPREC), **plans de récolement** des réseaux enterrés (DOE — cf. `reception_daact_essais_coprec.md`), respect des **pentes** et de la **séparation** EU/EP.
+
 ## Cas particuliers — DTU et règles complémentaires
 
 ### Avis Techniques (ATec) et Documents Techniques d'Application (DTA)
@@ -216,8 +273,12 @@ Pour des techniques non couvertes par les DTU :
 ## Citations à utiliser
 
 - NF DTU (par lot) — éditions AFNOR
+- **NF P01-012 / NF P01-013** (garde-corps — dimensionnel et efforts)
+- **NF EN 81-20 / NF EN 81-50** + **Directive 2014/33/UE** (ascenseurs)
+- **DTU 26.2** (chapes, planéité) ; **DTU 64.1** (ANC) ; **DTU 65.x** (chauffage/CVC)
+- **ATec / DTA / ETE** (procédés ITE/ETICS) — CSTB
 - Avis Techniques et DTA — CSTB
 - Règles professionnelles — Qualibat, branches
-- Arrêté 30 déc. 2011 (ITGH)
+- Arrêté 30 déc. 2011 (ITGH) ; IT 249 (façades, propagation feu)
 
 **Référence à citer :** NF DTU. Sources : afnor.org, dtu.cstb.fr (portail CSTB), batiproduits.com.

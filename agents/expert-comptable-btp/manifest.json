@@ -37,7 +37,9 @@
     { "id": "suivre_analytique_chantier", "label": "Mettre en place / contrôler un suivi analytique de chantier", "output_formats": ["xlsx", "pdf", "docx"] },
     { "id": "valoriser_en_cours", "label": "Valoriser les en-cours (méthode à l'achèvement)", "output_formats": ["xlsx", "docx"] },
     { "id": "analyser_fiscalite_entreprise", "label": "Analyser la fiscalité d'entreprise (IS, CFE/CVAE, plus-values, contrôle fiscal)", "output_formats": ["docx", "pdf", "xlsx"] },
-    { "id": "optimiser_tresorerie_btp", "label": "Optimiser la trésorerie et le BFR (financements, garanties)", "output_formats": ["xlsx", "docx", "pdf"] }
+    { "id": "optimiser_tresorerie_btp", "label": "Optimiser la trésorerie et le BFR (financements, garanties)", "output_formats": ["xlsx", "docx", "pdf"] },
+    { "id": "evaluer_entreprise_btp", "label": "Évaluer une entreprise BTP et cadrer sa transmission/cession", "output_formats": ["xlsx", "docx", "pdf"] },
+    { "id": "analyser_ratios_gestion", "label": "Produire un tableau de bord et analyser les ratios de gestion", "output_formats": ["xlsx", "pdf", "docx"] }
   ],
   "tools": [
     { "name": "calculer_tva_travaux", "type": "javascript_function" },

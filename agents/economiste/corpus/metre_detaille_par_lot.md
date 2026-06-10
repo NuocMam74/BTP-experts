@@ -220,6 +220,111 @@ Une chaussée se métré **couche par couche**, chacune en **m² × épaisseur**
 
 ---
 
+## 10. Serrurerie / Métallerie (lot serrurerie-métallerie)
+
+- **Ouvrages au U** (par repère, comme les menuiseries) : portails, grilles de défense, portes métalliques (EI/coupe-feu), portes de hall, châssis acier, trappes, caillebotis, échelles à crinoline.
+- **Garde-corps, rampes, mains courantes** : au **ml** (par type, hauteur réglementaire ≥ 1,00 m, remplissage barreaudé/tôle/verre — conformité NF P 01-012/013). La main courante d'escalier se métré au **ml développé** (suit la pente, ≠ projection).
+- **Structures métalliques secondaires** (ossatures, marquises, passerelles, escaliers métalliques) : au **kg** (tonnage par profilé) ou en **U** si ouvrage unitaire + kg pour la matière. La charpente métallique principale se métré en **tonnes** (cf. lot charpente).
+- **Sujétions** : galvanisation/thermolaquage (au m² développé ou au kg), scellements, platines, fixations chimiques, calepinage du remplissage verrier (compté en sus en menuiserie/vitrerie selon allotissement).
+- **Limite de prestation** à clarifier : qui fournit/pose les **seuils, supports, réservations** (GO ↔ métallerie). Le verre des garde-corps peut relever de la métallerie **ou** de la vitrerie.
+
+## 11. Ascenseurs et appareils élévateurs (lot ascenseurs)
+
+- **Comptage à l'appareil (U)** : un ascenseur = 1 ensemble, défini par **charge utile (kg / nb personnes)**, **nombre de niveaux desservis**, **course (m)**, **vitesse (m/s)**, type (électrique à traction / hydraulique / sans local des machines), cabine (dimensions, finitions, PMR).
+- Quantité associée : **nombre d'arrêts / de portes palières** (U), **course de gaine** (ml), prestation de **gaine et fosse** (à charge du GO — limite de prestation à fixer), alimentation et attentes (à charge électricité).
+- **Sujétions** : conformité **accessibilité PMR** (loi 2005-102, arrêtés ERP/habitation), local machinerie ou non (MRL), désenfumage/ventilation de gaine, secours/téléalarme, dimensions normalisées (NF EN 81-20/-50, NF EN 81-70 accessibilité).
+- **Monte-charges, EPMR (élévateurs PMR), monte-escaliers** : au **U** par type et charge.
+- À chiffrer en **ensemble fourni-posé-mis en service**, jamais au forfait opaque ; bien border le **contrat de maintenance** (hors marché travaux, mais à signaler en LCC — cf. `cout_exploitation_lcc.md`).
+
+## 12. Équipements (cuisines professionnelles, scéniques, équipements spécifiques)
+
+- **Cuisine professionnelle / restauration collective** : chaque appareil au **U** (fourneaux, fours, laverie, chambres froides, hottes), réseaux de raccordement (fluides, électricité, évacuation) au **ml** + U, **hotte/extraction** en ensemble. La **chambre froide** se métré en U (par volume/température) ou m² au sol + ml de panneaux.
+- **Équipements scéniques** (salles de spectacle) : gril technique, perches/porteuses motorisées (U + ml), machinerie scénique, structures d'accroche (kg/tonnes), au **U** par équipement + **ens.** pour le système.
+- **Équipements sportifs, laboratoires, médicaux, blanchisserie** : au **U** par appareil, avec **attentes/raccordements** (fluides, élec, évacuation, fonds de bouche) à border avec les lots techniques.
+- **Limite de prestation** systématique : qui fournit l'équipement (MOA en direct ? lot dédié ?), qui réalise les **attentes** (lots fluides/élec), qui assure la **mise en service**. À tracer en CCTP (cf. clause d'interface).
+
+## 13. Espaces verts / Paysage (lot VRD-paysage)
+
+- **Engazonnement** : m² (semis ou placage de gazon en plaques), **terre végétale** au m³ (ou m² × épaisseur) — apport, régalage, amendement.
+- **Plantations** : **arbres au U** (par essence, force/circonférence de tronc, motte/conteneur), **arbustes au U**, **haies au ml** (par hauteur), **massifs au m²** (densité de plantation au m²).
+- **Paillage / géotextile / écorce** : m². **Arrosage automatique** : ml de réseau + U (goutteurs, programmateurs, électrovannes, regards).
+- **Mobilier urbain / aménagement** : bancs, corbeilles, jeux, clôtures au **U** ou **ml** ; **revêtements de sols extérieurs** (stabilisé, pavés, dalles, platelage bois) au m².
+- Sujétions : **fosses de plantation** (m³), tuteurage et **garantie de reprise** (souvent **1 an**, parfois 2 — confortement, arrosage de parachèvement, remplacement des plants morts) — à intégrer au chiffrage et au CCTP.
+
+## 14. VRD réseaux secs — BT, éclairage, télécom/fibre (lot VRD courants faibles/forts)
+
+- **Tranchées communes / multi-réseaux** : m³ (en place, cf. §1) ; **fourreaux/gaines TPC** au **ml par Ø et couleur** (rouge énergie, vert télécom/fibre…), pose en nappe, lit de sable et grillage avertisseur au ml.
+- **Réseau BT/HTA** : câbles au **ml par section**, **chambres de tirage** (L0/L1/L2…) au U, branchements et coffrets (S20, fausses coupures) au U. La part **concessionnaire (Enedis)** est souvent **hors marché** (à border).
+- **Éclairage public / extérieur** : **mâts/candélabres au U** (par hauteur), **luminaires au U** (par type/puissance), câble d'alimentation au ml, massifs de fondation au U/m³, armoire de commande au U.
+- **Télécom / fibre (FTTH/FTTO)** : fourreaux au ml, chambres télécom (type **L1T/L2T/K1C**) au U, adduction au bâtiment en ml + U. Génie civil **séparé** de la prestation opérateur (à border).
+- **Limite de prestation** : distinguer génie civil VRD (à charge marché) et **raccordements définitifs concessionnaires** (souvent à charge MOA / hors marché) — à signaler en exclusions.
+
+## 15. Photovoltaïque (lot CET/PV — courant fort spécifique)
+
+- **Modules PV** : au **U** (par module) **et** en **kWc** installés (puissance crête — unité de chiffrage et de comparaison la plus parlante), surface de champ au **m²**.
+- **Structure de pose / intégration** : au **ml** de rails + U de fixations, ou **m²** de bac/membrane si intégration toiture (attention à l'**interface étanchéité** — qui garantit l'étanchéité des traversées : lot PV ou lot étanchéité ?).
+- **Onduleurs** au **U** (par puissance), **coffrets DC/AC**, **TGBT/raccordement** au U, **câblage DC/AC** au ml par section, **comptage/monitoring** au U.
+- **Sujétions** : parafoudre, mise à la terre, coupure d'urgence pompiers (DC), **raccordement réseau (Enedis / convention d'autoconsommation ou revente)** — souvent hors marché travaux, à border.
+- À chiffrer en **ensemble €/kWc** (ordre de grandeur, à actualiser à la date de consultation) pour le cadrage, puis détaillé par poste en PRO. Croiser avec la valorisation (autoconsommation/revente) côté LCC/bilan d'exploitation.
+
+---
+
+## ABAQUE — formules géométriques de métré (mémo de calcul)
+
+> Ces formules servent à **reconstituer une quantité d'ouvrage** depuis des plans cotés. Elles ne remplacent pas le métré sur plan / maquette, mais sécurisent les cas récurrents.
+
+### A. Volume de déblai/remblai sur talus avec fruit
+
+Un terrassement n'est jamais à parois verticales : on applique un **fruit de talus** noté par le rapport **f = base/hauteur** (ex. fruit 3/2 = 1,5 m de base pour 1 m de haut). Pour une **tranchée / fouille de longueur L**, largeur en fond **b**, profondeur **H**, talus de fruit **f** des **deux côtés** :
+
+```
+Largeur en gueule (haut)  = b + 2 × f × H
+Section trapézoïdale S    = (b + f × H) × H        [aire d'un trapèze à 2 talus symétriques]
+Volume V                  = S × L = (b + f × H) × H × L
+```
+
+Pour un **déblai de plateforme** (talus périphérique sur un seul niveau), décomposer en partie centrale (prisme droit) + talus de rive (prisme triangulaire `½ × f × H² × L` par côté). Le fruit **augmente** toujours le volume vs paroi verticale (`b × H × L`). Volume **en place** (le foisonnement est traité au §1 pour l'évacuation).
+
+### B. Développé de toiture selon la pente (coefficient 1/cos α)
+
+La surface réelle **rampante** se déduit de la surface en **projection horizontale** :
+
+```
+S_rampante = S_projetée_horizontale × (1 / cos α)
+```
+
+où **α = arctan(pente)**. Pente exprimée en % → α = arctan(p/100). (Table de 1/cos α au §3.) Exemple : 1000 m² projetés à 45 % (α ≈ 24,2°) → 1000 × 1,096 = **1 096 m² rampants**. La **couverture** se métré en rampant réel ; la **charpente traditionnelle** souvent en projection (selon bordereau) — ne pas confondre.
+
+### C. Surface de coffrage d'une poutre (sous-face + 2 joues)
+
+Pour une poutre rectangulaire de hauteur retombée **h** (sous la dalle), largeur **b**, longueur **L** :
+
+```
+Coffrage poutre = (b + 2 × h) × L      [1 sous-face de largeur b + 2 joues de hauteur h]
+```
+
+- Si la poutre est **noyée** (sans retombée), seul le moule de rive compte.
+- **Poteau** : coffrage = périmètre × hauteur = `2 × (a + b) × H` (section a×b).
+- **Voile** : coffrage = **2 faces** = `2 × surface vue` (≠ m² d'ouvrage compté 1 face, cf. §2). Déduire les vides > seuil de bordereau.
+
+### D. Métré d'escalier (béton + coffrage)
+
+Pour une volée droite de **n marches**, hauteur de marche (contremarche) **h**, giron (profondeur) **g**, largeur (emmarchement) **e**, épaisseur de paillasse **ep** :
+
+```
+Longueur de paillasse (rampante) = n × √(g² + h²)
+Volume béton paillasse           = e × ep × √( (n×g)² + (n×h)² )   [dalle inclinée]
+Volume béton des marches (gradins) = n × (½ × g × h) × e            [prismes triangulaires]
+Volume béton total ≈ Vpaillasse + Vmarches
+Coffrage sous-face (rampant)     = e × √( (n×g)² + (n×h)² )
+Coffrage des contremarches       = n × h × e
+Coffrage des limons / joues      = 2 × (surface latérale développée de la volée)
+```
+
+> Vérifier la **règle de Blondel** (confort) : **2h + g ≈ 60 à 64 cm** (h ≈ 16-18 cm, g ≈ 28-30 cm) — utile pour recalculer n si seules la hauteur d'étage et la trémie sont connues. Les **escaliers BA** se chiffrent souvent au **U par volée** (cf. `unites_mesurage_lots.md`), mais ce détail béton/coffrage sert au **sous-détail de prix**.
+
+---
+
 ## Pièges de métré transversaux (récapitulatif)
 
 - **Coffrage** = m² de moule (2 faces voile) ≠ m² d'ouvrage (1 face). Ne pas confondre dans le sous-détail.

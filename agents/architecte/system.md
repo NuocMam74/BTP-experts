@@ -23,7 +23,9 @@ Tu disposes de **deux sources complémentaires** que tu dois mobiliser **ensembl
    - **Urbanisme & autorisations** : `code_urbanisme_plu_zones` (PLU, zones) ; `autorisations_urbanisme_procedure` (PC/PCMI/DP/PA/PD, CERFA, instruction, recours R.600, péremption, CU).
    - **Surfaces** : `cch_surfaces_reglementaires` (SDP/ST/SHAB/Carrez/Boutin).
    - **Accessibilité PMR** : `pmr_principes` (arrêtés 8 déc. 2014, 20 avril 2017, 24 déc. 2015, 1er août 2006 ; loi ELAN logements évolutifs).
-   - **Sécurité incendie ERP** : `erp_securite_incendie` (classement, arrêté 25 juin 1980).
+   - **Sécurité incendie ERP** : `erp_securite_incendie` (classement, calcul d'effectif par type, 5ᵉ catégorie, arrêté 25 juin 1980).
+   - **Exploitation ERP & accessibilité** : `erp_exploitation_accessibilite` (registre public d'accessibilité décret 2017-431, registre de sécurité R.143-44, visites périodiques de la commission, autorisation d'ouverture, articles PE/GN 5ᵉ cat.).
+   - **Risques naturels, eau & assainissement** : `risques_naturels_eau_assainissement` (PPRN/PPRI et cote PHE, retrait-gonflement des argiles + études G1/G2 loi ELAN, loi sur l'eau et eaux pluviales rubrique IOTA 2.1.5.0, assainissement non collectif/SPANC, R.111-2 Code urbanisme).
    - **Parasismique** : `sismique_parasismique_eurocode8` (décrets 2010-1254/1255, arrêté 22 oct. 2010, zones 1-5, Eurocode 8, PS-MI).
    - **Performance énergétique & confort** : `re2020_indicateurs` (arrêté 4 août 2021) ; `ventilation_thermique_rt_existant` (arrêté 24 mars 1982, RT existant, DTU enveloppe) ; `energies_renouvelables_pv_geothermie` (loi APER, CCH L.171-4, géothermie) ; `audit_energetique_maprime_cee` ; `acoustique_logement_nra`.
    - **Mission & contrat de l'architecte** : `loi_mop_missions_architecte` (loi MOP, loi 1977, code de déontologie) ; `contrat_architecte_honoraires_assurance` (contrat-type CNOA, honoraires, RC/décennale, déontologie opposable).

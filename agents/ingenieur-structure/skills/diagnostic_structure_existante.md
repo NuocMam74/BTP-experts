@@ -158,14 +158,46 @@ Vérification compression + cisaillement.
 
 Sur la base de la portance disponible (étude G5 — diagnostic).
 
-#### Application EC8 Partie 3
+#### Application EC8 Partie 3 (NF EN 1998-3) — évaluation des structures existantes
 
-Pour bâtiments existants en zones sismiques :
-- **Évaluation** de la résistance sismique actuelle
-- **Niveaux d'exigence** :
-  - DL (Damage Limitation) : pas de dégâts importants pour séisme modéré
-  - SD (Significant Damage) : pas d'effondrement pour séisme moyen
-  - NC (Near Collapse) : pas d'effondrement total pour séisme fort
+Pour bâtiments existants en zones sismiques, l'**EC8-3** définit une méthodologie propre, distincte de l'EC8-1 (neuf) : la sécurité dépend du **niveau de connaissance** réellement atteint sur l'ouvrage existant, traduit par un **facteur de confiance CF** qui minore les résistances des matériaux.
+
+##### Niveaux de connaissance KL1 / KL2 / KL3 (EC8-3 §3.3)
+
+| Niveau | Géométrie | Dispositions constructives (ferraillage, détails) | Matériaux | Analyse autorisée | **Facteur de confiance CF** |
+|---|---|---|---|---|---|
+| **KL1 — Connaissance limitée** | Relevés + plans d'origine | **Hypothèses** (codes de l'époque, dimensionnement simulé) | Valeurs par défaut / présomptions | Méthodes **élastiques** (forces latérales / modal) uniquement | **CF = 1,35** |
+| **KL2 — Connaissance normale** | Relevés complets | Plans EXE incomplets **+ contrôle limité in situ** | Essais limités (carottage, prélèvement) ou tables | Toutes méthodes (y c. non linéaires) | **CF = 1,20** |
+| **KL3 — Connaissance approfondie** | Relevés complets | Plans EXE originaux **+ contrôle étendu in situ** | Essais étendus (échantillonnage représentatif) | Toutes méthodes | **CF = 1,00** |
+
+→ Le niveau KL est atteint en croisant **trois entrées** (géométrie, détails, matériaux) ; c'est le **plus faible** des trois qui gouverne. L'effort de **sondages/essais** (carottages, ouverture de ferraillage, pachomètre — voir §5) détermine donc directement le CF, et donc la résistance de calcul disponible.
+
+##### Emploi du facteur de confiance CF
+
+Les **résistances moyennes** mesurées (ou présumées) des matériaux sont **divisées par CF** avant vérification :
+
+```
+Résistance de calcul des matériaux = (valeur moyenne in situ) / CF / γ_M
+```
+
+→ Une **connaissance faible (KL1, CF = 1,35)** pénalise fortement la capacité ; investir dans les **sondages** (vers KL2/KL3) peut éviter un renforcement inutile.
+
+##### États limites DL / SD / NC (EC8-3 §2.1)
+
+L'EC8-3 introduit **trois états limites** (au lieu du couple NoCollapse/DamageLimitation de l'EC8-1), associés à des **périodes de retour** du séisme (à fixer par l'AN / le maître d'ouvrage) :
+
+| État limite | Signification | Performance | Période de retour indicative |
+|---|---|---|---|
+| **DL — Damage Limitation** (limitation des dommages) | Dommages **légers**, structure quasi non endommagée, réparation non nécessaire | Reste dans le domaine quasi-élastique | ~225 ans (T_R faible) |
+| **SD — Significant Damage** (dommages significatifs) | Dommages **importants mais réparables**, marge contre l'effondrement | Réparation possible mais parfois non économique | ~475 ans (séisme de référence) |
+| **NC — Near Collapse** (proche de l'effondrement) | Structure **très endommagée**, capacité résiduelle faible, effondrement imminent | À la limite de la ruine | ~2475 ans (séisme rare) |
+
+##### Lien avec le diagnostic
+
+- Le **niveau d'investigation** (étude documentaire §2, sondages/essais §5) **détermine le KL** atteint → donc le CF → donc la **capacité sismique** évaluée. Un diagnostic superficiel (KL1) sous-estime mécaniquement la structure.
+- Les **éléments** sont classés **ductiles** (vérifiés en **déformation** : rotation de corde θ) ou **fragiles** (vérifiés en **résistance** : effort tranchant) ; les résistances des éléments fragiles sont divisées par CF **et** γ_M.
+- Le **maître d'ouvrage fixe l'état limite cible** (DL/SD/NC) selon l'enjeu (mise en sécurité, surélévation, changement d'usage, catégorie d'importance II/III/IV).
+- Conclusion du diagnostic : indicateur **α** = capacité / demande pour l'état limite visé → décision **conserver / renforcer**, et choix de la stratégie de renforcement (§9).
 
 ### 8. Identifier les causes des désordres
 

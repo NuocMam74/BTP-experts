@@ -116,6 +116,16 @@
       "id": "auditer_pgc_ppsps",
       "label": "Auditer un PGC / valider un PPSPS / vérifier le registre-journal",
       "output_formats": ["pdf", "docx", "xlsx"]
+    },
+    {
+      "id": "gerer_demarrage_chantier",
+      "label": "Piloter les formalités de démarrage de chantier (DOC, panneau, piquetage, amiante/plomb)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "organiser_constat_refere",
+      "label": "Organiser un constat / référé préventif avant travaux sensibles (art. 145 CPC)",
+      "output_formats": ["docx", "pdf"]
     }
   ],
   "tools": [
