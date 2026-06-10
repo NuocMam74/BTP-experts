@@ -77,6 +77,16 @@ if (baseSchemaReady) {
   );
 `);
 
+  // 👍/👎 feedback on assistant messages — one verdict per message, upserted.
+  sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS message_feedback (
+    message_id TEXT PRIMARY KEY REFERENCES messages(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    vote TEXT NOT NULL CHECK (vote IN ('up','down')),
+    created_at INTEGER NOT NULL DEFAULT (unixepoch())
+  );
+`);
+
 // Add columns to conversations if missing (project_id, tags JSON).
 function columnExists(table: string, column: string): boolean {
   const cols = sqlite

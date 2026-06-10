@@ -13,6 +13,7 @@ type AgentCardProps = {
   tagline: string;
   skillsCount: number;
   priceEur: number;
+  index?: number;
 };
 
 const FORMAT_LABELS = ["PDF", "DOCX", "XLSX", "PPTX"];
@@ -23,6 +24,7 @@ export function AgentCard({
   tagline,
   skillsCount,
   priceEur,
+  index = 0,
 }: AgentCardProps) {
   const accent = AGENT_ACCENT[slug] ?? AGENT_ACCENT.architecte!;
   const presentation = AGENT_PRESENTATIONS[slug];
@@ -42,9 +44,13 @@ export function AgentCard({
   return (
     <>
       <article
-        className={`card-elevated card-hover group relative flex h-full flex-col overflow-hidden rounded-xl ${
+        className={`card-spot group relative flex h-full flex-col animate-fade-up overflow-hidden rounded-xl ${
           navigating ? "opacity-70" : ""
         }`}
+        style={{
+          ['--card-accent' as string]: accent.color,
+          animationDelay: `${Math.min(index, 8) * 70}ms`,
+        }}
       >
         <div
           className="h-1 w-full"

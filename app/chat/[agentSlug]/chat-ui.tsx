@@ -11,6 +11,7 @@ import "katex/dist/katex.min.css";
 
 import { AGENT_ACCENT, AgentIcon } from "@/components/AgentIcon";
 import { DiagnosticsModal } from "@/components/LmStudioDiagnostics";
+import { useConfirm, usePrompt, useToast } from "@/components/ui/Toast";
 import type { AgentManifest } from "@/lib/agent-runtime/types";
 
 type Citation = { source_ref: string; source_url: string | null };
@@ -22,6 +23,15 @@ type Message = {
   citations?: Citation[];
   activeTools?: ActiveTool[];
   createdAt?: string; // ISO timestamp — shown as HH:MM in the bubble
+  // Durable DB id of the persisted assistant message (sent in the "done" SSE
+  // event). Used to attach 👍/👎 feedback. For history-loaded messages, the
+  // client `id` already IS the DB id, so feedback falls back to it.
+  persistedId?: string;
+  feedback?: "up" | "down" | null;
+  // True for messages created this session (client UUID). Their DB id only
+  // becomes known via persistedId; history-loaded messages already carry it as
+  // `id`. Lets feedback target the right durable id without a 404.
+  fresh?: boolean;
 };
 
 function formatTime(iso?: string): string {
@@ -248,6 +258,9 @@ export function ChatUI({
   agentConversations: ConversationSummary[];
 }) {
   const router = useRouter();
+  const { toast } = useToast();
+  const confirmDialog = useConfirm();
+  const promptDialog = usePrompt();
   const accent = AGENT_ACCENT[agent.slug] ?? AGENT_ACCENT.architecte!;
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
@@ -498,6 +511,16 @@ export function ChatUI({
               return { ...m, activeTools, citations: deduped };
             }),
           );
+        } else if (event === "done") {
+          const d = data as { messageId?: string };
+          if (d.messageId) {
+            const persistedId = d.messageId;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, persistedId } : m,
+              ),
+            );
+          }
         } else if (event === "error") {
           const d = data as { message?: string };
           throw new Error(d.message ?? "Erreur du flux");
@@ -582,7 +605,7 @@ export function ChatUI({
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() },
+      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString(), fresh: true },
     ]);
 
     await streamResponse({ userText, skillId, assistantId });
@@ -604,7 +627,7 @@ export function ChatUI({
     const assistantId = crypto.randomUUID();
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString() },
+      { id: assistantId, role: "assistant", content: "", createdAt: new Date().toISOString(), fresh: true },
     ]);
 
     await streamResponse({
@@ -684,18 +707,33 @@ export function ChatUI({
   }
 
   async function deleteConversation(id: string) {
-    if (!confirm("Supprimer définitivement cette conversation ?")) return;
+    const ok = await confirmDialog({
+      title: "Supprimer la conversation",
+      message:
+        "Cette conversation et tous ses messages seront définitivement supprimés. Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+      cancelLabel: "Annuler",
+      danger: true,
+    });
+    if (!ok) return;
     const res = await fetch(`/api/conversations/${id}`, { method: "DELETE" });
     if (!res.ok) {
-      setError("Suppression échouée");
+      toast.error("Suppression échouée", { description: `HTTP ${res.status}` });
       return;
     }
     setConversations((prev) => prev.filter((c) => c.id !== id));
     if (id === conversationId) startNewConversation();
+    toast.success("Conversation supprimée");
   }
 
   async function renameConversation(id: string, currentTitle: string | null) {
-    const next = prompt("Nouveau nom de la conversation :", currentTitle ?? "");
+    const next = await promptDialog({
+      title: "Renommer la conversation",
+      label: "Nom de la conversation",
+      defaultValue: currentTitle ?? "",
+      placeholder: "Ex. Analyse PLU lot 12",
+      confirmLabel: "Renommer",
+    });
     if (next == null) return; // cancelled
     const trimmed = next.trim().slice(0, 200);
     if (!trimmed || trimmed === currentTitle) return;
@@ -709,10 +747,63 @@ export function ChatUI({
       body: JSON.stringify({ title: trimmed }),
     });
     if (!res.ok) {
-      setError("Renommage échoué");
+      toast.error("Renommage échoué", { description: `HTTP ${res.status}` });
       return;
     }
     router.refresh();
+    toast.success("Conversation renommée");
+  }
+
+  async function exportConversation(id: string, format: "md" | "pdf") {
+    const loadingId = toast.loading(
+      `Export ${format.toUpperCase()} en préparation…`,
+    );
+    try {
+      const res = await fetch(`/api/conversations/${id}/export?format=${format}`);
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? `HTTP ${res.status}`);
+      }
+      const data = (await res.json()) as { downloadUrl: string; filename: string };
+      toast.dismiss(loadingId);
+      toast.success("Export prêt", { description: data.filename });
+      // Trigger the download via a transient anchor.
+      const a = document.createElement("a");
+      a.href = data.downloadUrl;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (err) {
+      toast.dismiss(loadingId);
+      toast.error("Export échoué", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  async function sendFeedback(
+    targetId: string,
+    clientId: string,
+    vote: "up" | "down" | null,
+  ) {
+    // Optimistic update on the local message.
+    setMessages((prev) =>
+      prev.map((m) => (m.id === clientId ? { ...m, feedback: vote } : m)),
+    );
+    try {
+      const res = await fetch(`/api/messages/${targetId}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vote }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      if (vote) toast.success("Merci pour votre retour !");
+    } catch (err) {
+      toast.error("Retour non enregistré", {
+        description: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   async function updateConversationProject(newProjectId: string | null) {
@@ -823,6 +914,7 @@ export function ChatUI({
         onNewConversation={startNewConversation}
         onDelete={deleteConversation}
         onRename={renameConversation}
+        onExport={exportConversation}
         accentColor={accent.color}
         open={historyOpen}
         onOpenChange={setHistoryOpen}
@@ -913,8 +1005,19 @@ export function ChatUI({
             />
           ) : (
             messages.map((m, idx) => {
+              const isLast = idx === messages.length - 1;
               const isLastAssistant =
-                m.role === "assistant" && idx === messages.length - 1 && !isStreaming;
+                m.role === "assistant" && isLast && !isStreaming;
+              const isStreamingThis =
+                m.role === "assistant" && isLast && isStreaming;
+              // Trustworthy durable id: history messages carry it as `id`; fresh
+              // ones only once `persistedId` arrives via the "done" event.
+              const feedbackTargetId =
+                m.role === "assistant"
+                  ? m.fresh
+                    ? m.persistedId
+                    : m.id
+                  : undefined;
               return (
                 <MessageBubble
                   key={m.id}
@@ -923,6 +1026,14 @@ export function ChatUI({
                   agentSlug={agent.slug}
                   accentColor={accent.color}
                   onRegenerate={isLastAssistant ? regenerate : undefined}
+                  streaming={isStreamingThis}
+                  feedbackTargetId={feedbackTargetId}
+                  onFeedback={
+                    feedbackTargetId
+                      ? (vote) =>
+                          void sendFeedback(feedbackTargetId, m.id, vote)
+                      : undefined
+                  }
                 />
               );
             })
@@ -1200,13 +1311,25 @@ function ProjectTagsBar({
   onCreateProject: (name: string) => Promise<ProjectSummary | null>;
 }) {
   const [tagInput, setTagInput] = useState("");
+  const promptDialog = usePrompt();
+  const { toast } = useToast();
 
   async function handleProjectChange(value: string) {
     if (value === "__new__") {
-      const name = prompt("Nom du nouveau projet ?");
+      const name = await promptDialog({
+        title: "Nouveau projet",
+        label: "Nom du projet",
+        placeholder: "Ex. Résidence Les Tilleuls",
+        confirmLabel: "Créer",
+      });
       if (!name?.trim()) return;
       const created = await onCreateProject(name.trim());
-      if (created) onProjectChange(created.id);
+      if (created) {
+        onProjectChange(created.id);
+        toast.success("Projet créé", { description: created.name });
+      } else {
+        toast.error("Création du projet échouée");
+      }
       return;
     }
     onProjectChange(value === "" ? null : value);
@@ -1283,6 +1406,7 @@ function ConversationsSidebar({
   onNewConversation,
   onDelete,
   onRename,
+  onExport,
   accentColor,
   open,
   onOpenChange,
@@ -1298,6 +1422,7 @@ function ConversationsSidebar({
   onNewConversation: () => void;
   onDelete: (id: string) => void;
   onRename: (id: string, currentTitle: string | null) => void;
+  onExport: (id: string, format: "md" | "pdf") => void;
   accentColor: string;
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -1463,6 +1588,27 @@ function ConversationsSidebar({
                             type="button"
                             onClick={() => {
                               setOpenMenuId(null);
+                              onExport(c.id, "md");
+                            }}
+                            className="block w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent"
+                          >
+                            Exporter en Markdown
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuId(null);
+                              onExport(c.id, "pdf");
+                            }}
+                            className="block w-full rounded px-2 py-1.5 text-left text-xs text-foreground hover:bg-accent"
+                          >
+                            Exporter en PDF
+                          </button>
+                          <div className="my-1 border-t border-border/60" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenMenuId(null);
                               onDelete(c.id);
                             }}
                             className="block w-full rounded px-2 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
@@ -1497,15 +1643,23 @@ function MessageBubble({
   agentSlug,
   accentColor,
   onRegenerate,
+  streaming = false,
+  feedbackTargetId,
+  onFeedback,
 }: {
   message: Message;
   agentName: string;
   agentSlug: string;
   accentColor: string;
   onRegenerate?: () => void;
+  streaming?: boolean;
+  feedbackTargetId?: string;
+  onFeedback?: (vote: "up" | "down" | null) => void;
 }) {
   const isUser = message.role === "user";
   const [copied, setCopied] = useState(false);
+  const vote = message.feedback ?? null;
+  const canFeedback = Boolean(feedbackTargetId && onFeedback) && !streaming;
 
   async function copy() {
     try {
@@ -1594,6 +1748,43 @@ function MessageBubble({
                   </svg>
                 </button>
               )}
+              {canFeedback && (
+                <>
+                  <span className="mx-0.5 h-3.5 w-px bg-border" aria-hidden />
+                  <button
+                    type="button"
+                    onClick={() => onFeedback!(vote === "up" ? null : "up")}
+                    className={`rounded p-1 transition hover:bg-muted ${
+                      vote === "up"
+                        ? "text-emerald-400"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Réponse utile"
+                    aria-label="Réponse utile"
+                    aria-pressed={vote === "up"}
+                  >
+                    <svg viewBox="0 0 24 24" fill={vote === "up" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                      <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onFeedback!(vote === "down" ? null : "down")}
+                    className={`rounded p-1 transition hover:bg-muted ${
+                      vote === "down"
+                        ? "text-red-400"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Réponse à améliorer"
+                    aria-label="Réponse à améliorer"
+                    aria-pressed={vote === "down"}
+                  >
+                    <svg viewBox="0 0 24 24" fill={vote === "down" ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                      <path d="M17 14V2M9 18.12 10 14H4.17a2 2 0 0 1-1.92-2.56l2.33-8A2 2 0 0 1 6.5 2H20a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-2.76a2 2 0 0 0-1.79 1.11L12 22a3.13 3.13 0 0 1-3-3.88Z" />
+                    </svg>
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
@@ -1639,7 +1830,7 @@ function MessageBubble({
             </div>
           )}
           {hasContent ? (
-            <div className="prose-chat">
+            <div className={`prose-chat ${streaming ? "stream-caret" : ""}`}>
               <ReactMarkdown
                 remarkPlugins={CHAT_REMARK_PLUGINS}
                 rehypePlugins={CHAT_REHYPE_PLUGINS}

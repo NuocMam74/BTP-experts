@@ -245,6 +245,9 @@ export async function POST(
   const aggregatedCitations: Citation[] = [];
   let assistantText = "";
   let persisted = false;
+  // Durable id of the persisted assistant message — sent to the client in the
+  // "done" event so it can attach 👍/👎 feedback to the right message.
+  let assistantMessageId: string | null = null;
 
   // Persist whatever the assistant produced — exactly once — whether the stream
   // finishes, errors, or is aborted by the client ("Stop"). Guarantees a partial
@@ -258,6 +261,7 @@ export async function POST(
       role: "assistant",
       text: assistantText,
     });
+    assistantMessageId = id;
     if (aggregatedCitations.length > 0) {
       await db
         .update(schema.messages)
@@ -408,7 +412,15 @@ export async function POST(
             sseEncode("citations", { citations: aggregatedCitations }),
           );
         }
-        safeEnqueue(sseEncode("done", {}));
+        // Persist BEFORE signaling done so the client receives the durable
+        // message id (for 👍/👎 feedback). Idempotent — the finally block's call
+        // becomes a no-op on the success path.
+        try {
+          await persistAssistant();
+        } catch (err) {
+          logger.error({ err }, "failed to persist assistant before done");
+        }
+        safeEnqueue(sseEncode("done", { messageId: assistantMessageId }));
       } catch (err) {
         if (req.signal.aborted) {
           logger.info({ agent: agent.slug }, "chat stream aborted by client");

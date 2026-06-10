@@ -63,10 +63,15 @@ const config: Config = {
       },
       animation: {
         "fade-in": "fade-in 0.6s ease-out",
-        "fade-up": "fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1)",
+        "fade-up": "fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both",
         "slide-up": "slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+        "scale-in": "scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
         shimmer: "shimmer 2.4s linear infinite",
+        "caret-blink": "caret-blink 1.05s steps(2, jump-none) infinite",
+        aurora: "aurora 22s ease-in-out infinite",
+        float: "float 7s ease-in-out infinite",
+        "border-flow": "border-flow 6s linear infinite",
       },
       keyframes: {
         "fade-in": {
@@ -81,6 +86,10 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.96) translateY(6px)" },
+          "100%": { opacity: "1", transform: "scale(1) translateY(0)" },
+        },
         "pulse-glow": {
           "0%, 100%": { opacity: "0.6" },
           "50%": { opacity: "1" },
@@ -88,6 +97,26 @@ const config: Config = {
         shimmer: {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
+        },
+        "caret-blink": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0" },
+        },
+        // Slow, organic drift of the hero halos — gives the landing a living,
+        // "blueprint under daylight" feel without being distracting.
+        aurora: {
+          "0%, 100%": { transform: "translate3d(0,0,0) scale(1)", opacity: "0.9" },
+          "33%": { transform: "translate3d(3%,-2%,0) scale(1.08)", opacity: "1" },
+          "66%": { transform: "translate3d(-2%,2%,0) scale(0.96)", opacity: "0.8" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        // Conic gradient angle sweep for animated card/CTA borders.
+        "border-flow": {
+          "0%": { "--angle": "0deg" },
+          "100%": { "--angle": "360deg" },
         },
       },
       boxShadow: {

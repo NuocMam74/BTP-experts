@@ -384,3 +384,125 @@
     background: rgba(255, 255, 255, 0.18);
   }
 }
+
+/* ===========================================================================
+   Refonte visuelle — profondeur, halos, micro-interactions (additif, ne casse
+   aucune classe existante). Tout est désactivé sous prefers-reduced-motion.
+   =========================================================================== */
+@layer components {
+  /* Texte en dégradé de marque (titres hero). */
+  .text-gradient {
+    background-image: linear-gradient(
+      100deg,
+      hsl(var(--foreground)) 0%,
+      hsl(var(--foreground)) 35%,
+      #f59e0b 70%,
+      #fbbf24 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Halo "aurore" pour le fond du hero (blobs flous animés). */
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    opacity: 0.55;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+  .dark .aurora-blob { opacity: 0.4; }
+
+  /* Carte "premium" : profondeur douce + sheen au survol piloté par
+     --card-accent (couleur de l'agent). N'altère pas .card-elevated. */
+  .card-spot {
+    position: relative;
+    background: hsl(var(--surface-elevated));
+    border: 1px solid hsl(var(--border));
+    box-shadow:
+      0 1px 2px rgba(2, 6, 23, 0.04),
+      0 12px 28px -18px rgba(2, 6, 23, 0.18);
+    transition:
+      transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+  .dark .card-spot {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.4),
+      0 16px 40px -22px rgba(0, 0, 0, 0.7);
+  }
+  .card-spot::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      130deg,
+      var(--card-accent, #f59e0b) 0%,
+      transparent 35%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    pointer-events: none;
+  }
+  .card-spot:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--card-accent, #f59e0b) 45%, transparent);
+    box-shadow:
+      0 1px 2px rgba(2, 6, 23, 0.05),
+      0 22px 48px -22px color-mix(in srgb, var(--card-accent, #f59e0b) 40%, rgba(2, 6, 23, 0.5));
+  }
+  .card-spot:hover::before { opacity: 0.9; }
+
+  /* Surface "verre" pour barres flottantes (composer, toasts). */
+  .glass {
+    background: color-mix(in srgb, hsl(var(--surface-elevated)) 78%, transparent);
+    backdrop-filter: blur(10px) saturate(1.2);
+    -webkit-backdrop-filter: blur(10px) saturate(1.2);
+  }
+}
+
+@layer utilities {
+  /* Curseur de frappe affiché en fin de texte pendant le streaming. */
+  .stream-caret::after {
+    content: "";
+    display: inline-block;
+    width: 0.5ch;
+    height: 1.05em;
+    margin-left: 1px;
+    vertical-align: -0.18em;
+    border-radius: 1px;
+    background: currentColor;
+    opacity: 0.75;
+    animation: caret-blink 1.05s steps(2, jump-none) infinite;
+  }
+
+  /* Apparition différée d'une grille (cartes) — utilisée avec animation-delay
+     inline pour un effet "stagger". */
+  .animate-fade-up { animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @keyframes caret-blink {
+    0%, 100% { opacity: 0.75; }
+    50% { opacity: 0; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

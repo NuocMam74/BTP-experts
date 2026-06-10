@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { ToastProvider } from "@/components/ui/Toast";
 
 import "./globals.css";
 
@@ -51,11 +52,13 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body className="bg-canvas min-h-screen text-foreground antialiased">
-        <SiteHeader />
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-          <div className="flex-1">{children}</div>
-          <SiteFooter />
-        </div>
+        <ToastProvider>
+          <SiteHeader />
+          <div className="flex min-h-[calc(100vh-4rem)] flex-col">
+            <div className="flex-1">{children}</div>
+            <SiteFooter />
+          </div>
+        </ToastProvider>
       </body>
     </html>
   );
