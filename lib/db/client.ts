@@ -41,10 +41,33 @@ sqlite.exec(`
   );
 `);
 
+function tableExists(name: string): boolean {
+  return (
+    sqlite
+      .prepare(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      )
+      .get(name) !== undefined
+  );
+}
+
 // --- Idempotent bootstrap for tables added after the initial drizzle migrations.
 // Keeps the local-first SQLite app self-healing without forcing the user to run
 // db:generate every time.
-sqlite.exec(`
+//
+// Guard: on a brand-new / unmigrated database — an in-memory CI build, or the
+// very first `db:migrate` (which imports THIS module before applying the
+// migrations) — the base tables do not exist yet and the statements below would
+// throw "no such table: conversations" and break `next build`. We skip in that
+// case; the bootstrap self-heals on the next import, once the migrations have
+// created the base tables.
+const baseSchemaReady =
+  tableExists("conversations") &&
+  tableExists("messages") &&
+  tableExists("corpus_chunks");
+
+if (baseSchemaReady) {
+  sqlite.exec(`
   CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -172,6 +195,7 @@ backfillIfEmpty(
   "content, id, agent_namespace, source_ref",
   "content, chunk_id, agent_namespace, source_ref",
 );
+}
 
 export const db = drizzle(sqlite, { schema });
 export { schema };
