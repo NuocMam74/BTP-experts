@@ -48,16 +48,11 @@ Dans le cas de **marchés privés**, l'entrepreneur principal qui sous-traite do
 
 Cette obligation est **d'ordre public** : un sous-traitant non couvert peut faire annuler son contrat (Cour de cassation, ch. mixte, 18 décembre 1992).
 
-## Article L.4532-12 du Code du travail — CSPS
+## Coordination SPS — voir la fiche dédiée
 
-Pour les chantiers où interviennent plusieurs entreprises (1ʳᵉ ou 2ᵉ catégorie selon décret 94-1159), un **coordonnateur SPS** doit être désigné.
-
-Niveaux de compétence :
-- **Niveau 1** : grands chantiers (cat. 1) > 10 000 hommes/jour ou > 30 entreprises
-- **Niveau 2** : chantiers de cat. 1 ou 2 (limitations selon volume)
-- **Niveau 3** : petits chantiers de cat. 3
-
-Le **PGCSPS** (plan général de coordination SPS) est obligatoire pour les chantiers de cat. 1 et 2. Les **entreprises** doivent fournir leur **PPSPS** (plan particulier de SPS) après visite d'inspection commune.
+> La **coordination Sécurité et Protection de la Santé (CSPS)** — catégories d'opération, niveaux de compétence du coordonnateur, **PGC**, **PPSPS**, **CISSCT**, **DIUO** et seuils réglementaires — est traitée **exclusivement** dans la fiche **`csps_securite_chantier.md`** (corpus MOEX), pour éviter toute duplication ou contradiction de seuils.
+>
+> **Seuil de référence à retenir** : la **1re catégorie / niveau I** correspond à **plus de 10 000 hommes-jours ET plus de 10 entreprises** (TCE), conformément à l'**art. R.4532-77 du Code du travail**.
 
 ## Synthèse opérationnelle — Que vérifier sur un DC4 ?
 

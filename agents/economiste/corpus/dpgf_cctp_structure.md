@@ -119,10 +119,12 @@ PU = DS + FC + FG + BA
 - **FG** : Frais Généraux d'entreprise — direction, comptabilité, assurances, formation
 - **BA** : Bénéfice et Aléas — marge entreprise + aléas
 
-Pondération courante :
-- FC : 8 à 12 % du DS
-- FG : 7 à 14 % du DS+FC (selon taille entreprise)
-- BA : 5 à 10 % du DS+FC+FG
+Pondération de référence (alignée sur la **fourchette de référence unique** définie dans `corpus/sous_detail_prix_methodo.md` — c'est ce fichier qui fait foi) :
+- **FC : 8 à 12 %** du DS
+- **FG : 8 à 15 %** du (DS + FC) — selon taille d'entreprise (TPE jusqu'à 20-25 %, major 6-10 %)
+- **BA : 4 à 10 %** du (DS + FC + FG) — jusqu'à 10-15 % sur petites quantités / ouvrages spécifiques
+
+> En cas de divergence avec un autre fichier, la fourchette de référence est celle de `corpus/sous_detail_prix_methodo.md`.
 
 ### Exemple — semelle BA
 

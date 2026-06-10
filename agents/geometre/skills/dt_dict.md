@@ -64,11 +64,13 @@ Si pièces partielles : demande
 
 ## 4. Classes de précision des réseaux (R.554-23)
 
-| Classe | Précision cartographique | Conséquences |
+| Classe | Précision cartographique (incertitude max) | Conséquences |
 |---|---|---|
-| **A** | ± 40 cm pour rigides, ± 50 cm pour flexibles (en zone urbaine) | Travaux possibles avec précautions standards |
-| **B** | Entre A et 1,5 m | Sondages manuels recommandés à proximité |
-| **C** | > 1,5 m d'imprécision | **Investigations Complémentaires (IC) obligatoires** si réseau sensible |
+| **A** | **≤ 40 cm** | Travaux possibles avec précautions standards, fouille manuelle à proximité immédiate |
+| **B** | **40 cm à 150 cm** | Sondages manuels / investigations complémentaires recommandés à proximité |
+| **C** | **> 150 cm** (ou réseau non géoréférencé) | **Investigations Complémentaires (IC) obligatoires** si réseau sensible |
+
+> Jeu de classes harmonisé (corpus `dt_dict_reseaux.md` et `recolement_plan_asbuilt.md`) : **A ≤ 40 cm**, **B de 40 à 150 cm**, **C > 150 cm**. Pour un branchement neuf, l'exploitant doit fournir une cartographie en **classe A** (art. R.554-23 et arrêté du 15 février 2012).
 
 ### Réseaux **sensibles pour la sécurité** (R.554-2)
 

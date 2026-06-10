@@ -12,24 +12,25 @@ Issue de la directive européenne 92/57/CEE, elle institue la **coordination en 
 
 Précise les modalités d'application et de désignation des CSPS.
 
-## Niveaux de coordination (art. R.4532-1 et s.)
+## Catégories et niveaux de coordination (art. R.4532-1 et s.)
 
-Trois niveaux selon la **taille du chantier** :
+La réglementation distingue d'abord les **catégories d'opération** (selon volume et nombre d'entreprises), qui déterminent ensuite les **obligations** (PGC, CISSCT) et le **niveau de compétence** exigé du coordonnateur.
 
-| Niveau | Volume travaux | Exemple |
-|---|---|---|
-| **Niveau I** | Volume > **30 000 h-J cumulés** + **20 entreprises et plus** (sous-traitants inclus) | Grande opération immobilière, ouvrage d'art |
-| **Niveau II** | Volume > **500 h-J cumulés** (hors niveau I) | Logement collectif moyen, équipement public |
-| **Niveau III** | Volume ≤ 500 h-J cumulés ou maison individuelle | Maison individuelle, petite rénovation |
+| Catégorie | Volume travaux | Nombre d'entreprises | Niveau de compétence CSPS |
+|---|---|---|---|
+| **1re catégorie** | **> 10 000 hommes-jours** **ET** **> 10 entreprises** (TCE) ou **> 5 entreprises** (génie civil), sous-traitants inclus | élevé | **Niveau I** |
+| **2e catégorie** | autres chantiers soumis à PGC obligatoire (au moins 2 entreprises, ne relevant pas de la 1re cat.) | intermédiaire | **Niveau II** |
+| **3e catégorie** | chantiers avec au moins 2 entreprises ne relevant pas des 1re/2e cat. (petits chantiers) | restreint | **Niveau III** |
 
-> **h-J** : un homme-jour = 8 heures de travail effectif d'une personne.
+> **Référence : art. R.4532-1 et R.4532-77 du Code du travail.** Le seuil **1re catégorie = plus de 10 000 hommes-jours ET plus de 10 entreprises (TCE)** déclenche les obligations les plus lourdes (PGC, **CISSCT**, coordonnateur **niveau I**).
+> **h-J** : un homme-jour = une journée de travail effectif d'une personne (référence retenue par la réglementation pour le décompte du volume).
 
 ### Calcul approximatif des h-J
 
 Pour un chantier logement collectif R+5 (40 logements, 12 mois de chantier) :
 - Effectif moyen : 25 personnes
 - Durée : 240 jours
-- Total ≈ **6 000 h-J** → **Niveau II**
+- Total ≈ **6 000 h-J** → en-dessous de 10 000 h-J ⇒ **2e catégorie / niveau II** (sauf nombre d'entreprises atypique)
 
 ## Désignation du CSPS
 
@@ -153,7 +154,7 @@ Exigent une attention particulière (CISSCT, formation spécifique) :
 
 ## Collège Interentreprises de Sécurité, de Santé et des Conditions de Travail (CISSCT)
 
-### Obligatoire pour chantiers de niveau I (art. R.4532-78)
+### Obligatoire pour chantiers de 1re catégorie / niveau I (art. R.4532-77 et s.)
 
 - Réunions à la périphérie de chaque visite SPS
 - Présents : représentants des entreprises, CSPS, MOE, MOA
@@ -233,11 +234,14 @@ Tout MOA et toute entreprise doit, avant tout travaux :
 ## Citations à utiliser
 
 - Code du travail art. L.4531-1 à L.4532-18 et R.4531-1 à R.4532-95
+- **Code du travail art. R.4532-1 (catégories) et R.4532-77 (1re catégorie : > 10 000 h-J ET > 10 entreprises TCE)**
 - Loi 93-1418 du 31 déc. 1993
 - Décret 94-1159 du 26 déc. 1994
-- Arrêté 7 mars 1995 (formations CSPS et qualifications A/B/C)
+- Arrêté 7 mars 1995 (formations CSPS et qualifications)
 - Arrêté 25 février 2003 (travaux dangereux)
 - Décret 2011-1241 + Code de l'environnement L.554-1 (DT-DICT)
 - CCAG-Travaux 2021 art. 28 (sécurité)
 
-**Référence à citer :** Code du travail art. R.4532 + décret CSPS + arrêté travaux dangereux. Sources : Legifrance + INRS.
+> **Note de fiabilisation des seuils** : le seuil de **1re catégorie / niveau I** est **> 10 000 hommes-jours ET > 10 entreprises** (travaux tous corps d'état), conformément à l'**art. R.4532-77 du Code du travail** ; c'est cette valeur qui fait foi dans tout le corpus MOEX. *(Seuils réglementaires — à revérifier à la date de consultation.)*
+
+**Référence à citer :** Code du travail art. R.4532-1 et R.4532-77 + décret CSPS + arrêté travaux dangereux. Sources : Legifrance + INRS.

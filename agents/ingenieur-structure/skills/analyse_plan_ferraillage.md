@@ -13,7 +13,7 @@ L'utilisateur fournit typiquement :
 
 Si plan seul fourni sans note : demande
 1. Classe de béton (C20/25, C25/30, C30/37, C35/45…) ?
-2. Classe d'acier HA (B500A ou B500B, voire B450C) ?
+2. Classe d'acier HA (B500A, B500B ou B500C très ductile sismique — NF EN 10080) ?
 3. Classe d'exposition (XC, XD, XS, XF, XA) — voir tableau §3 ci-dessous ?
 4. Catégorie d'importance et zone sismique (impacte armatures de continuité, chaînages) ?
 5. Durée d'utilisation prévue (50 ans courant, 100 ans ouvrage exceptionnel) ?

@@ -46,6 +46,18 @@ Les OPR sont conduites par le maître d'œuvre, en présence du maître d'ouvrag
 - Une **liste des réserves** (vices, défauts, omissions, non-conformités)
 - Un **délai de levée** des réserves, généralement **30 jours**, prolongeable une fois
 
+#### Jeu de délais de référence (harmonisé avec la fiche `opr_reception_gpa_procedure.md`)
+
+| Étape | Délai | Acteur |
+|---|---|---|
+| OPR après la demande de réception du titulaire | **20 jours** | MOE convoque et conduit |
+| Établissement / signature du **PV d'OPR** | en séance ou sous **8 jours** | MOE |
+| **Proposition de réception** (rapport + liste consolidée des réserves) | **5 jours** après le PV | MOE → MOA |
+| **Décision** de réception (avec/sans réserves ou refus) | **15 jours** après la proposition MOE | MOA → notifie le titulaire |
+| **Levée des réserves** | **30 jours** (renouvelable une fois) | titulaire |
+
+> Ces délais constituent le **jeu unique de référence** du corpus MOEX. La fiche **`opr_reception_gpa_procedure.md`** en donne le détail procédural complet (convocation, déroulé, cas de refus de signer, réception partielle/tacite/judiciaire).
+
 ### Prononcé de la réception
 
 Sur proposition du maître d'œuvre, le maître d'ouvrage prononce la réception :

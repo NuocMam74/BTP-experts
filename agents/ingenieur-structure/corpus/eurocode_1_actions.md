@@ -118,19 +118,24 @@ Au-dessus de 1 000 m, la formule peut être augmentée selon altitude.
 q_p(z) = c_e(z) × q_b
 q_b = (1/2) × ρ × v_b²
 ```
-- **v_b** : vitesse de référence en m/s (zone)
+- **v_b** : vitesse de référence en m/s (= c_dir × c_season × v_b,0, région 1 à 4)
 - **ρ** : masse volumique de l'air (1,25 kg/m³)
 - **c_e(z)** : coefficient d'exposition (terrain + altitude)
 
-### Vitesses de référence v_b (AN française) — vent décennal moyen
+### Vitesses de référence v_b,0 (AN française) — 4 régions de vent
 
-| Zone | v_b (m/s) | q_b (N/m²) |
-|---|---|---|
-| 1 | 22 | 302 |
-| 2 | 24 | 360 |
-| 3 | 26 | 422 |
-| 4 | 28 | 490 |
-| 5 (littoral, montagne haute) | 31 | 602 |
+L'Annexe Nationale de la NF EN 1991-1-4 définit **4 régions de vent** en France métropolitaine (carte par département/commune). Il n'existe **pas de région 5 en métropole** (les régions 1 à 4 couvrent tout le territoire ; les départements et régions d'outre-mer relèvent de valeurs spécifiques cyclonniques).
+
+| Région | v_b,0 (m/s) | q_b (N/m²) = ½ × 1,25 × v_b,0² | Exemples |
+|---|---|---|---|
+| **1** | **22** | 302 | Grande partie de l'intérieur (Est, Centre) |
+| **2** | **24** | 360 | Bassin parisien élargi, vallée du Rhône |
+| **3** | **26** | 422 | Façade atlantique et arrière-littoral |
+| **4** | **28** | 490 | Littoral atlantique/Manche, pourtour méditerranéen exposé |
+
+- **v_b,0** = vitesse de référence de base (valeur caractéristique à 10 m, terrain catégorie II, période de retour 50 ans).
+- **v_b** = c_dir × c_season × v_b,0 (avec c_dir et c_season généralement pris à 1,0).
+- La masse volumique de l'air ρ = 1,25 kg/m³ (AN française).
 
 ### Catégories de terrain
 

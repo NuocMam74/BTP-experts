@@ -1,91 +1,79 @@
-# Code civil — Bornage et servitudes
+# Code civil — Bornage (article 646 et fixation des limites)
 
-**Source :** Code civil, Legifrance — texte officiel français du domaine public.
+**Source :** Code civil, Legifrance — texte officiel français du domaine public ; ordonnance du 21 mai 1945 (statut du géomètre-expert) ; jurisprudence Cour de cassation 3e civile.
 
-## Article 646 — Bornage
+> **Périmètre de ce corpus :** ce fichier traite exclusivement du **bornage** (fixation des limites entre fonds privés contigus) et de sa distinction avec les notions voisines. Pour les **servitudes** (art. 637 à 710), la **mitoyenneté** (art. 653 à 670), les **plantations** (art. 671-673), les **jours et vues** (art. 675-680), l'**enclave** (art. 682-685) et la **prescription des servitudes**, voir le corpus dédié `mitoyennete_servitudes_codecivil.md`. Pour les **procédures** amiable et judiciaire détaillées, voir `bornage_judiciaire_amiable.md`.
 
-Tout propriétaire peut **obliger son voisin au bornage** de leurs propriétés contiguës. Le bornage se fait à **frais communs**.
+## Article 646 — Droit au bornage
 
-Le bornage peut être :
-- **Amiable** : convention entre les deux propriétaires, formalisée par un PV de bornage signé. Le géomètre-expert intervient pour matérialiser les limites par des bornes et établir le procès-verbal. Le PV vaut convention.
-- **Judiciaire** : en cas de désaccord, action en bornage devant le tribunal judiciaire (ou tribunal de proximité selon enjeu). Le juge ordonne le bornage et désigne un expert.
+> Tout propriétaire peut **obliger son voisin au bornage** de leurs propriétés contiguës. Le bornage se fait à **frais communs**.
 
-### Effets du bornage
+### Caractères du droit au bornage
 
-- **Force de la chose jugée** entre les parties pour le bornage judiciaire
-- **Convention opposable** pour le bornage amiable
+- **Imprescriptible** : le droit d'exiger le bornage peut être exercé sans limite de temps tant que les fonds restent contigus.
+- **Réciproque** : chacun des deux voisins peut en prendre l'initiative.
+- **Frais partagés** par moitié entre voisins (sauf accord contraire ou répartition fixée par le juge).
+- **Acte fondateur** des limites de propriété, mais **déclaratif** et non attributif : le bornage **constate** les limites, il ne **crée pas** la propriété.
 
-Le bornage ne crée pas la propriété : il **constate les limites** sur la base des titres, des marques de possession trentenaire (art. 2272), ou à défaut, des limites équitables.
+### Conditions du bornage
 
-### Distinction bornage / délimitation
+- Fonds **privés**, **contigus** et **non déjà bornés** (un bornage régulier antérieur fait obstacle à une nouvelle action, sauf nullité).
+- Le bornage entre une propriété privée et le **domaine public** relève d'un régime distinct (**alignement** / délimitation domaniale), non de l'article 646.
 
-- **Bornage** : opération privée entre voisins (art. 646)
-- **Délimitation** : opération publique entre une propriété privée et le domaine public (DDT, ASN, etc.)
-- **Cadastre** : document fiscal, n'a **pas valeur juridique** de propriété — il indique une enveloppe approximative
+## Deux formes de bornage
 
-## Servitudes — Articles 690 à 710
+| Forme | Cadre | Force |
+|---|---|---|
+| **Amiable** | Convention entre les deux propriétaires, formalisée par un **PV de bornage** signé. Le géomètre-expert matérialise les limites par des bornes et établit le procès-verbal. | Le PV vaut **convention** (force obligatoire art. 1103 CC). Opposable aux tiers seulement après **publication au Service de la Publicité Foncière**. |
+| **Judiciaire** | En cas de désaccord, **action en bornage** devant le **tribunal judiciaire** (ou tribunal de proximité selon l'enjeu). Le juge ordonne le bornage et désigne un **expert géomètre** inscrit. | **Autorité de la chose jugée** entre les parties. |
 
-### Définition (art. 637)
+> Détail des procédures (convocation, PV de carence, expertise, voies de recours, délais) : voir `bornage_judiciaire_amiable.md`. Le bornage judiciaire complet dure typiquement **18 à 36 mois** (variable selon juridiction — à revérifier à la date de consultation).
 
-Une **servitude** est une charge imposée sur un héritage (le **fonds servant**) pour l'usage et l'utilité d'un héritage appartenant à un autre propriétaire (le **fonds dominant**).
+## Hiérarchie des modes de fixation de la limite
 
-### Classification
+Le géomètre-expert fixe la limite selon une hiérarchie de preuves :
 
-**Selon la cause** (art. 639) :
-- Servitudes **dérivant de la situation des lieux** (servitudes naturelles : écoulement des eaux, art. 640)
-- Servitudes **établies par la loi** (servitudes légales : passage en cas d'enclave art. 682, mur mitoyen art. 653, distance des plantations art. 671)
-- Servitudes **établies par le fait de l'homme** (servitudes conventionnelles, par titre, par destination du père de famille, par prescription)
+1. **Titres** des deux fonds (descriptifs, plans annexés, références à des points fixes).
+2. **Bornes anciennes** non contestées par les parties.
+3. **Possession trentenaire** (art. 2272 CC, conditions art. 2261 : continue, paisible, publique, non équivoque, à titre de propriétaire).
+4. **Présomption** issue du cadastre (présomption simple seulement).
+5. **Équité** / partage à parts égales si la limite reste indéterminable.
 
-**Selon le caractère** :
-- **Apparentes** (chemin, fenêtre) ou **non apparentes** (canalisation enterrée)
-- **Continues** (vue, écoulement) ou **discontinues** (passage)
+## Distinction de notions voisines
 
-### Constitution
+| Notion | Définition | Valeur juridique |
+|---|---|---|
+| **Bornage** | Opération privée fixant la **limite définitive** entre deux fonds privés contigus (art. 646) | Acte juridique de la limite |
+| **Délimitation** | Opération **publique** fixant la limite entre une propriété privée et le **domaine public** (alignement, délimitation domaniale) | Régime administratif distinct |
+| **Implantation / piquetage** | Positionnement technique d'une construction par rapport aux limites | Pas un acte de propriété |
+| **Cadastre** | Document **fiscal** (DGFiP) ; enveloppe parcellaire **approximative** | **Présomption simple** — pas de valeur probante de propriété (jurisprudence constante) |
 
-Les servitudes **continues et apparentes** peuvent s'acquérir par :
-1. **Titre** (acte notarié)
-2. **Prescription trentenaire** (art. 690 et art. 2272) — sauf en Alsace-Moselle (régime local)
-3. **Destination du père de famille** (art. 692) — quand le propriétaire de deux fonds a établi un état des lieux puis vendu l'un des fonds
+> La **superficie cadastrale** d'une parcelle peut différer de la **superficie réelle** mesurée par le géomètre-expert : seul le bornage contradictoire (monopole OGE, ordonnance 1945) a valeur juridique sur la limite.
 
-Les servitudes **discontinues** ne s'acquièrent que par **titre** ou par **destination du père de famille** explicite (art. 691). Elles ne peuvent **pas** s'acquérir par prescription seule.
+## Effets du bornage
 
-### Extinction (art. 703 à 710)
+- **Fixe les limites** entre les fonds bornés.
+- Bornage **amiable** : **convention** opposable entre signataires (art. 1103 CC) ; opposabilité aux **tiers** subordonnée à la **publication au SPF**.
+- Bornage **judiciaire** : **autorité de la chose jugée** ; opposable aux tiers si publié.
+- **Irrévocable** sauf vice du consentement (erreur, dol — art. 1130 et s. CC) pour l'amiable, ou voies de recours (appel, cassation) pour le judiciaire.
 
-Les servitudes s'éteignent par :
-- Cessation de l'utilité (l'objet de la servitude disparaît)
-- **Confusion** : le fonds dominant et le fonds servant deviennent propriété d'une même personne
-- **Non-usage trentenaire** (art. 706)
-- Renonciation (acte authentique)
+## Articulation bornage / servitudes / mitoyenneté
 
-## Servitudes courantes en pratique
+Le bornage peut être l'**occasion** de constater des charges grevant les fonds, mais ces questions relèvent du corpus `mitoyennete_servitudes_codecivil.md` :
 
-| Servitude | Cause | Fonds dominant | Fonds servant |
-|---|---|---|---|
-| **Passage** (art. 682) | Enclave (pas d'accès à la voie publique) ou conventionnelle | Fonds enclavé | Fonds voisin |
-| **Vue** (art. 678) | Conventionnelle ou par titre | Fonds bénéficiant de la vue | Fonds qui subit la vue |
-| **Tour d'échelle** | Conventionnelle ou usage | Fonds nécessitant entretien | Fonds traversé |
-| **Écoulement des eaux** (art. 640) | Naturelle | Fonds amont | Fonds aval |
-| **Non aedificandi** | Conventionnelle ou par titre | Fonds bénéficiant de l'absence de construction | Fonds construit |
-| **Cour commune** | Conventionnelle | Fonds(s) bénéficiant de l'espace | Fonds qui supporte |
+- Constatation de **mitoyenneté** d'un mur séparatif (présomption art. 653, marques contraires art. 654, acquisition art. 661).
+- Repérage des **servitudes** apparentes ou non (passage art. 682, vue art. 678-679, écoulement des eaux art. 640, plantations art. 671-673).
+- Vérification de l'**absence d'empiétement** (construction, plantation, clôture franchissant la limite bornée).
 
-## Article 678 — Vue droite et vue oblique
+→ Pour l'analyse juridique de ces charges, se reporter au corpus servitudes/mitoyenneté dédié. Le présent corpus reste centré sur la **limite foncière** elle-même.
 
-- **Vue droite** (perpendiculaire à la limite) : distance minimum **1,90 m** du fond du voisin
-- **Vue oblique** (latérale, < 45°) : distance minimum **0,60 m**
+## Citations à utiliser
 
-Ces distances peuvent être levées par servitude conventionnelle ou par prescription.
+- Code civil art. 646 (droit au bornage), 648 (frais)
+- Code civil art. 1103 (force obligatoire de la convention — PV amiable)
+- Code civil art. 2261 et 2272 (possession et prescription acquisitive 30 ans)
+- Ordonnance du 21 mai 1945 (statut et monopole du géomètre-expert)
+- Décret 55-22 du 4 janvier 1955 (publicité foncière)
+- Jurisprudence Cass. 3e civ. (valeur du cadastre, empiétement)
 
-## Article 682 — Servitude de passage pour cause d'enclave
-
-Le propriétaire dont les fonds enclavés et qui n'a sur la voie publique aucune issue suffisante peut **réclamer** sur les fonds de ses voisins **un passage suffisant** pour assurer la desserte complète de ses fonds, à charge d'une **indemnité** proportionnée au dommage qu'il peut occasionner.
-
-Cette servitude est **légale** et ne se prescrit pas tant que l'enclave subsiste.
-
-## Article L.442-1 — Lotissement (Code de l'urbanisme)
-
-Constitue un lotissement la **division en propriété ou en jouissance** d'une unité foncière ou de plusieurs unités foncières contiguës ayant pour objet de créer **un ou plusieurs lots destinés à être bâtis**.
-
-- **Permis d'aménager (PA) obligatoire** dès lors que la division crée **au moins 3 lots** ou qu'elle prévoit la **création ou l'aménagement de voies ou d'espaces communs**.
-- **Déclaration préalable (DP) suffisante** pour les divisions plus simples (2 lots sans création de voirie commune, ou hors zone soumise à PA).
-
-**Référence à citer :** Code civil art. 646, 678, 682, 690-710 ; Code de l'urbanisme art. L.442-1, R.421-19, R.421-23. Source : Legifrance.
+**Référence à citer :** Code civil art. 646 + ordonnance 21 mai 1945 + OGE. Pour les servitudes et la mitoyenneté : corpus `mitoyennete_servitudes_codecivil.md`. Sources : Legifrance + geometre-expert.fr (OGE).

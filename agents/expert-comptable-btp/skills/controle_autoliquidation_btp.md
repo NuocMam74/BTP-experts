@@ -22,7 +22,7 @@ Si pièces manquantes : demande
 ## 2. Référentiels (`rag_search` obligatoire)
 
 - `rag_search("CGI article 283 nonies autoliquidation sous-traitance BTP")`
-- `rag_search("BOFIP BOI-TVA-DECLA-10-20-30 autoliquidation sous-traitance bâtiment")` — doctrine
+- `rag_search("BOFIP série BOI-TVA, doctrine autoliquidation sous-traitance BTP")` — doctrine fiscale (vérifier l'identifiant BOFIP exact à la date de consultation sur bofip.impots.gouv.fr ; le corpus interne référence BOI-TVA-DECLA-10-10-20 — ne citer aucun numéro non confirmé)
 - `rag_search("loi 75-1334 sous-traitance contrat agrément")`
 - `rag_search("CCAG-Travaux article 3 sous-traitance marchés publics")`
 - `rag_search("annexe III article 242 nonies A CGI activités BTP éligibles")` — périmètre activités

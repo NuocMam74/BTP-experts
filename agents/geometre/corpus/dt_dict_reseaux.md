@@ -54,6 +54,8 @@ L'entreprise doit :
 | **B** | 40 à 150 cm | Investigations complémentaires (IC) recommandées avant fouille |
 | **C** | > 150 cm | Investigations complémentaires obligatoires pour réseaux sensibles |
 
+> Jeu de classes de référence pour l'agent (harmonisé avec `recolement_plan_asbuilt.md` et le skill `dt_dict`) : **A ≤ 40 cm**, **B de 40 à 150 cm**, **C > 150 cm** (art. R.554-23 code env. + arrêté du 15 février 2012).
+
 ## Réseaux sensibles
 
 Les réseaux **sensibles pour la sécurité** ou la continuité du service nécessitent une vigilance accrue :

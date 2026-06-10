@@ -20,9 +20,9 @@ Tout prix unitaire d'un poste de DPGF se décompose en quatre grandes masses :
    - Échafaudages communs
    - Sécurité (PPSPS, EPI collectifs)
 
-3. **Frais généraux (FG)** — affectables à l'entreprise (siège, encadrement non chantier, marketing, financiers). Typiquement 8 % à 18 % du déboursé selon la taille de l'entreprise et le métier.
+3. **Frais généraux (FG)** — affectables à l'entreprise (siège, encadrement non chantier, marketing, financiers). Fourchette de référence **8 % à 15 %** (cf. tableau de référence unique ci-dessous), selon la taille de l'entreprise et le métier.
 
-4. **Bénéfices et aléas (BA)** — marge commerciale et provision pour aléas. Typiquement 4 % à 10 %.
+4. **Bénéfices et aléas (BA)** — marge commerciale et provision pour aléas. Fourchette de référence **4 % à 10 %** (cf. tableau de référence unique ci-dessous).
 
 ## Formule de composition
 
@@ -38,17 +38,26 @@ Prix unitaire HT = D + D × FC% + (D + FC) × FG% + (D + FC + FG) × BA%
 
 (les deux conventions existent — bien vérifier laquelle est utilisée dans le bordereau de référence).
 
-## Ordres de grandeur usuels (France 2024-2025)
+## Fourchette de référence unique des marges (FC / FG / BA)
+
+> **RÉFÉRENCE UNIQUE DE L'AGENT.** Ce tableau est la **seule** fourchette de marges faisant foi pour l'agent économiste. Les fichiers `corpus/dpgf_cctp_structure.md` et `skills/chiffrer_dpgf.md` (et tout autre fichier qui mentionne FC/FG/BA) s'alignent dessus. En cas de divergence, **c'est ce tableau qui prime.**
+
+| Masse | Assiette de calcul | Fourchette de référence | Cas particuliers |
+|---|---|---|---|
+| **FC** — Frais de chantier | % du déboursé sec (D) | **8 % à 12 %** | Petit chantier / site occupé / accès difficile → jusqu'à 15 %. Très gros chantier organisé → 6 à 8 %. |
+| **FG** — Frais généraux | % de (D + FC) | **8 % à 15 %** | Artisan / TPE → jusqu'à 20-25 %. Major / gros marché structuré → 6 à 10 %. |
+| **BA** — Bénéfices et aléas | % de (D + FC + FG) | **4 % à 10 %** | Petites quantités / ouvrage spécifique / forte incertitude → 10 à 15 %. Major sur gros marché → BA pouvant monter à 12 %. |
+
+**Lecture cumulée :** un ouvrage standard chiffré au milieu de fourchette (FC 10 %, FG 11 %, BA 7 %) porte un **coefficient de passage déboursé sec → PU HT de l'ordre de 1,30 à 1,32** (ordre de grandeur, à actualiser à la date de consultation). Une TPE peut atteindre 1,45-1,55 ; un major bien organisé peut descendre à 1,22-1,26.
+
+## Ordres de grandeur de main d'œuvre (France, ordre de grandeur à actualiser à la date de consultation)
 
 | Poste | Plage typique |
 |---|---|
 | MO bâtiment (taux horaire chargé ouvrier) | 35 à 55 €/h selon convention collective et région |
 | MO TP (taux horaire chargé ouvrier) | 38 à 60 €/h |
-| FC (frais de chantier) | 8 % à 18 % du déboursé sec |
-| FG (frais généraux) | 8 % à 18 % du déboursé sec |
-| BA (bénéfices et aléas) | 4 % à 10 % |
 
-Pour des artisans ou TPE, FG peut grimper jusqu'à 25 %. Pour des majors, FG est plus bas (6-10 %) mais le BA peut être plus haut (jusqu'à 12 %).
+> Ces taux horaires sont des **ordres de grandeur datés** : ils évoluent avec les conventions collectives et la conjoncture. **À actualiser à la date de consultation** (cf. indices TRBT et IPHE, corpus `indices_bt_tp_revision_prix.md`).
 
 ## Sources du déboursé sec
 

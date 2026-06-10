@@ -12,7 +12,10 @@
     "pdf:pv_bornage",
     "pdf:titre_propriete",
     "pdf:plan_division",
-    "pdf:rapport_dt_dict"
+    "pdf:rapport_dt_dict",
+    "pdf:edd_copropriete",
+    "pdf:reglement_copropriete",
+    "pdf:plan_division_volumes"
   ],
   "skills": [
     {
@@ -73,6 +76,21 @@
     {
       "id": "analyser_titres_propriete",
       "label": "Analyser titres de propriété et historique foncier",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "etablir_edd_copropriete",
+      "label": "Établir / analyser un EDD et un règlement de copropriété (tantièmes)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "diviser_en_volumes",
+      "label": "Analyser / établir une division en volumes (EDDV)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "analyser_expropriation",
+      "label": "Plan parcellaire d'expropriation et situation de procédure",
       "output_formats": ["docx", "pdf", "xlsx"]
     }
   ],

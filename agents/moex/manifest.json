@@ -91,6 +91,31 @@
       "id": "controler_doe_diuo",
       "label": "Contrôler la complétude du DOE et DIUO",
       "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "viser_plan_exe",
+      "label": "Viser un plan d'exécution (EXE) / plan d'atelier (PAC)",
+      "output_formats": ["pdf", "docx", "xlsx"]
+    },
+    {
+      "id": "gerer_compte_prorata",
+      "label": "Établir et gérer le compte prorata (NF P 03-001)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "controler_gestion_dechets",
+      "label": "Contrôler la gestion des déchets de chantier (PEMD, SOGED, valorisation)",
+      "output_formats": ["pdf", "docx", "xlsx"]
+    },
+    {
+      "id": "controle_conformite_dtu",
+      "label": "Contrôler la conformité d'un ouvrage aux DTU (réserves motivées)",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "auditer_pgc_ppsps",
+      "label": "Auditer un PGC / valider un PPSPS / vérifier le registre-journal",
+      "output_formats": ["pdf", "docx", "xlsx"]
     }
   ],
   "tools": [

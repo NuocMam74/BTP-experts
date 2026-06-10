@@ -83,6 +83,31 @@
       "id": "diagnostic_structure_existante",
       "label": "Diagnostiquer une structure existante (EC8-3)",
       "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "verifier_structure_mixte",
+      "label": "Vérifier une structure mixte acier-béton (EC4)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "verifier_stabilite_feu",
+      "label": "Déterminer et vérifier la stabilité au feu d'un élément",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "dimensionner_dallage",
+      "label": "Pré-dimensionner un dallage industriel (DTU 13.3)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "verifier_assemblage_acier",
+      "label": "Vérifier un assemblage acier (EC3-1-8)",
+      "output_formats": ["docx", "pdf", "xlsx"]
+    },
+    {
+      "id": "rediger_cctp_structure",
+      "label": "Rédiger et contrôler un CCTP structure",
+      "output_formats": ["docx", "pdf"]
     }
   ],
   "tools": [

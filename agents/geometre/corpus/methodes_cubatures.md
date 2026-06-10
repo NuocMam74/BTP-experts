@@ -17,6 +17,8 @@
 
 ## Coefficient de foisonnement — ordres de grandeur (NF P 11-300)
 
+> Table de référence de l'agent pour les cubatures (harmonisée avec le skill `cubatures`). Valeurs indicatives à confirmer par essais de sol (mission G2) et planche d'essais — à revérifier à la date de consultation.
+
 | Matériau | Cf (foisonnement) | Cc (compactage) |
 |---|---|---|
 | Terre végétale | 1,15 - 1,25 | 0,90 - 0,95 |

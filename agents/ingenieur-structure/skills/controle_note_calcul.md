@@ -50,7 +50,7 @@ Si pas de note fournie : pose ces questions :
 | Hypothèse | Valeur typique | Vérification |
 |---|---|---|
 | **Béton** | C25/30 (logt courant) à C50/60 (HPC) | Cohérent classe d'exposition ? |
-| **Acier HA** | B500B (le plus courant) ou B450C (sismique zones 3-5) | B500A déconseillé sismique |
+| **Acier HA** | B500B (le plus courant) ou B500C (très ductile, sismique zones 3-4) | B500A déconseillé sismique (NF EN 10080) |
 | **Bois** | C24 (structure courante), GL24h / GL28h (lamellé-collé) | Classes service 1/2/3 |
 | **Acier construction** | S235 / S275 / S355 | EN 10025-2 |
 | **Classe exposition béton** | XC1 (intérieur) à XS3 (mer) | Voir tableau §3 ci-dessous |

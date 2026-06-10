@@ -70,8 +70,9 @@ Pour chaque chantier en cours :
 3. **Comptabiliser** :
    ```
    6815 Dotations aux provisions d'exploitation         _ €
-       1518 Autres provisions pour risques                  _ €
+       1516 Provisions pour pertes sur contrats             _ €
    ```
+   > Compte PCG dédié : **1516 « Provisions pour pertes sur contrats »** (perte à terminaison, PCG art. 380-3). Réserver le 1518 « Autres provisions pour risques » aux aléas non nommés.
 
 ##### Audit
 

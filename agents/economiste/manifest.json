@@ -68,11 +68,37 @@
       "id": "analyser_avenant_economique",
       "label": "Analyser économiquement un avenant ou TS",
       "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "suivre_finances_chantier",
+      "label": "Suivre les finances d'un chantier (situations, DGD, retenue de garantie)",
+      "output_formats": ["xlsx", "pdf", "pptx"]
+    },
+    {
+      "id": "estimer_par_phase",
+      "label": "Estimer au bon niveau de précision selon la phase (ESQ → PRO)",
+      "output_formats": ["docx", "xlsx", "pdf", "pptx"]
+    },
+    {
+      "id": "chiffrer_demolition_desamiantage",
+      "label": "Chiffrer démolition, désamiantage et déchets",
+      "output_formats": ["xlsx", "docx", "pdf"]
+    },
+    {
+      "id": "analyser_dce",
+      "label": "Analyser et structurer un DCE (cohérence CCTP↔DPGF)",
+      "output_formats": ["docx", "xlsx", "pdf"]
+    },
+    {
+      "id": "calculer_tva_travaux",
+      "label": "Calculer la TVA sur travaux (20 / 10 / 5,5 %)",
+      "output_formats": ["xlsx", "docx", "pdf"]
     }
   ],
   "tools": [
     { "name": "ratio_m2", "type": "javascript_function" },
     { "name": "calculer_revision_prix", "type": "javascript_function" },
+    { "name": "calc_surfaces", "type": "javascript_function" },
     { "name": "rag_search", "type": "vector_search", "namespace": "economiste" },
     {
       "name": "generer_rapport",

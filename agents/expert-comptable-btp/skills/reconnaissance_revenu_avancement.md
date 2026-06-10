@@ -113,9 +113,11 @@ IFRS 15 remplace IAS 11 / IAS 18 depuis 2018. Approche **performance obligation*
 ### Provision pour perte à terminaison
 
 ```
-6816 "Dotation aux provisions pour risques et charges"     D  perte totale prévue
-    1572 "Provision pour perte sur contrats"                  C  idem
+6815 "Dotations aux provisions d'exploitation"             D  perte totale prévue
+    1516 "Provisions pour pertes sur contrats"                C  idem
 ```
+
+> Compte PCG dédié : **1516 « Provisions pour pertes sur contrats »** (perte à terminaison des contrats à long terme, PCG art. 380-3). La provision pour perte à terminaison relève de l'exploitation → dotation au **6815** (et non 6816, réservé aux provisions pour risques et charges hors exploitation type IFC).
 
 ## 6. Procédure de calcul du % d'avancement et du produit reconnu
 
@@ -176,8 +178,8 @@ IFRS 15 remplace IAS 11 / IAS 18 depuis 2018. Approche **performance obligation*
 - Marge prévisionnelle totale = P – Ct = [€]
 - **Si marge < 0 (perte prévisionnelle)** :
   - Provision pour perte à terminaison à constituer = | marge prévisionnelle | (en intégralité, indépendamment du % d'avancement)
-  - Écriture : 6816 D / 1572 C
-  - Justification PCG art. 380-1 § 2
+  - Écriture : 6815 D / 1516 « Provisions pour pertes sur contrats » C
+  - Justification PCG art. 380-3 (provision pour perte à terminaison)
 
 ### Annexe comptable
 - Description du chantier et de la méthode retenue
@@ -196,7 +198,7 @@ IFRS 15 remplace IAS 11 / IAS 18 depuis 2018. Approche **performance obligation*
 - [Élevé / À valider — la méthode des coûts engagés sous-estime l'avancement si gros achats anticipés / approvisionnements]
 
 ### Suites
-- Compte 1572 à reprendre l'année suivante si situation améliorée
+- Compte 1516 « Provisions pour pertes sur contrats » à reprendre l'année suivante si la situation s'améliore (reprise au 7815)
 - Annexe légale à compléter
 - Validation par CAC si seuils contrôle légal atteints
 ```

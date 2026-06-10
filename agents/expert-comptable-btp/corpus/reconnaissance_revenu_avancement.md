@@ -149,8 +149,10 @@ Contrat 1 200 000 €. Coûts initialement estimés : 950 000 €. Après aléas
 
 ```
 6815 Dotations aux provisions d'exploitation       60 000 €
-    1518 Autres provisions pour risques              60 000 €
+    1516 Provisions pour pertes sur contrats         60 000 €
 ```
+
+> Compte PCG dédié : **1516 « Provisions pour pertes sur contrats »** (sous-compte du 151 « Provisions pour risques »). À ne pas confondre avec le 1518 « Autres provisions pour risques », réservé aux risques non spécifiquement nommés.
 
 ## Aspects fiscaux — art. 38-2 bis CGI
 
@@ -194,7 +196,7 @@ Provisionnables et déductibles dans les conditions de droit commun.
 | **34** | Stocks de produits intermédiaires et finis |
 | **418** | Clients — Produits non encore facturés |
 | **4191** | Avances et acomptes reçus sur commandes |
-| **1518** | Provisions pour pertes à terminaison |
+| **1516** | Provisions pour pertes sur contrats (pertes à terminaison) |
 | **791** | Transferts de charges (refacturation interne) |
 | **6815** / **7815** | Dotations / reprises sur provisions d'exploitation |
 

@@ -147,9 +147,11 @@ Prix Unitaire HT = DS × (1 + FC) × (1 + FG) × (1 + BA)
 | **MAT'** | Matériel | Engins, échafaudages, outillage |
 | **TR** | Transport | Livraison matériaux, location camion |
 | **SC** | Sous-traitance, locations | Si poste partiellement sous-traité |
-| **FC** Frais de chantier | Logistique chantier (encadrement, sécurité, baraquements) | 5 à 12 % du DS |
-| **FG** Frais généraux | Structure entreprise (direction, comptabilité, R&D) | 8 à 15 % |
-| **BA** Bénéfices + aléas | Marge + couverture risques | 3 à 8 % |
+| **FC** Frais de chantier | Logistique chantier (encadrement, sécurité, baraquements) | **8 à 12 % du DS** |
+| **FG** Frais généraux | Structure entreprise (direction, comptabilité, R&D) | **8 à 15 % du (DS+FC)** |
+| **BA** Bénéfices + aléas | Marge + couverture risques | **4 à 10 % du (DS+FC+FG)** |
+
+> ⚠️ **Fourchette de référence unique** : ces plages sont alignées sur `corpus/sous_detail_prix_methodo.md` (fichier qui **fait foi**). Cas particuliers : FC jusqu'à 15 % (petit chantier/site occupé), FG jusqu'à 20-25 % (TPE/artisan) ou 6-10 % (major), BA jusqu'à 10-15 % (petites quantités / ouvrage spécifique). Vérifie `rag_search("fourchette de référence FC FG BA marges sous-détail")` en cas de doute.
 
 ⚠️ Selon les conventions :
 - Méthode **cascade** (multiplicative) : (((DS + FC) + FG) + BA) — plus précise

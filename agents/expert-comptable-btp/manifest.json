@@ -32,7 +32,12 @@
     { "id": "analyser_tva_immobiliere", "label": "Analyser la TVA immobilière (marchand de biens, VEFA, LASM)", "output_formats": ["docx", "pdf", "xlsx"] },
     { "id": "gerer_procedure_collective", "label": "Accompagner une procédure collective BTP", "output_formats": ["docx", "pdf"] },
     { "id": "auditer_provisions_btp", "label": "Auditer les provisions d'une entreprise BTP", "output_formats": ["docx", "pdf", "xlsx"] },
-    { "id": "mobiliser_aides_publiques", "label": "Mobiliser les aides publiques (Bpifrance, CIR, ADEME)", "output_formats": ["docx", "pdf", "xlsx"] }
+    { "id": "mobiliser_aides_publiques", "label": "Mobiliser les aides publiques (Bpifrance, CIR, ADEME)", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "preparer_facturation_electronique", "label": "Préparer la facturation électronique et l'e-reporting (réforme 2026)", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "suivre_analytique_chantier", "label": "Mettre en place / contrôler un suivi analytique de chantier", "output_formats": ["xlsx", "pdf", "docx"] },
+    { "id": "valoriser_en_cours", "label": "Valoriser les en-cours (méthode à l'achèvement)", "output_formats": ["xlsx", "docx"] },
+    { "id": "analyser_fiscalite_entreprise", "label": "Analyser la fiscalité d'entreprise (IS, CFE/CVAE, plus-values, contrôle fiscal)", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "optimiser_tresorerie_btp", "label": "Optimiser la trésorerie et le BFR (financements, garanties)", "output_formats": ["xlsx", "docx", "pdf"] }
   ],
   "tools": [
     { "name": "calculer_tva_travaux", "type": "javascript_function" },

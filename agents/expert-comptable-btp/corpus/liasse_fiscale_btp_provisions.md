@@ -98,8 +98,10 @@ Réestimation à mi-chantier : coûts totaux = 1 260 000 €.
 
 ```
 6815 Dotations aux provisions d'exploitation           60 000 €
-    1518 Autres provisions pour risques                  60 000 €
+    1516 Provisions pour pertes sur contrats             60 000 €
 ```
+
+> Compte PCG dédié : **1516 « Provisions pour pertes sur contrats »** pour la perte à terminaison (PCG art. 380-3). Le 1518 « Autres provisions pour risques » est réservé aux risques non spécifiquement nommés (aléas divers).
 
 ### 4. Provision pour amende ou redressement fiscal
 
@@ -191,8 +193,9 @@ Activités éligibles courantes :
 CIR = 30 % des dépenses éligibles ≤ 100 M€
     + 5 % au-delà
 ```
+*(Taux et seuils à revérifier à la date de consultation — la LF peut faire évoluer le taux, l'assiette et le forfait de frais de fonctionnement.)*
 
-Plafond : aucun plafond formel.
+Plafond : aucun plafond formel sur le taux de 30 %.
 
 #### Documentation
 
@@ -210,11 +213,16 @@ Plafond : aucun plafond formel.
 - **15 % minimum** de dépenses R&D
 - Détenue à 50 % minimum par personnes physiques
 
-#### Avantages
+#### Avantages (régime actualisé — à revérifier à la date de consultation)
 
-- **Exonération IS** : 100 % la 1ʳᵉ année, 50 % la 2ᵉ
-- **Exonération CFE** (cotisation foncière des entreprises) : pendant 7 ans
-- **Exonération cotisations sociales** patronales sur personnel R&D : 7 ans
+⚠️ **Évolution majeure — loi de finances pour 2024** : l'**exonération d'impôt sur les bénéfices (IS / IR)** du régime JEI a été **supprimée** pour les entreprises créées à compter du 1ᵉʳ janvier 2024. L'avantage « 100 % la 1ʳᵉ année / 50 % la 2ᵉ » ne s'applique **plus** aux JEI nouvellement créées.
+
+Subsistent (sous réserve de revérification à la date de consultation) :
+- **Exonérations sociales** : exonération de cotisations patronales sur le personnel R&D (dégressive, sous plafonds).
+- **Exonérations locales facultatives** : CFE et taxe foncière, sur **délibération** des collectivités territoriales.
+- Une catégorie de **JEC (Jeune Entreprise de Croissance)** a par ailleurs été introduite (seuils de dépenses R&D spécifiques).
+
+→ Ne jamais annoncer une exonération d'IS au titre de la JEI sans vérifier l'année de création de l'entreprise et le texte applicable à la date de consultation.
 
 #### Application BTP
 
@@ -274,8 +282,10 @@ Pour chaque provision > 10 000 € :
 
 #### Régime des plus-values professionnelles
 
-- Pour **entreprise individuelle** : plus-value imposée au barème IR + prélèvements sociaux
-- Pour **société IS** : plus-value imposée à IS (32 % en 2024)
+- Pour **entreprise individuelle** : plus-value imposée au barème IR + prélèvements sociaux (régime des plus-values professionnelles court terme / long terme, art. 39 duodecies et s.)
+- Pour **société IS** : la plus-value de cession d'immobilisation est un **produit imposable au taux de droit commun de l'IS = 25 %** (taux réduit 15 % sur la fraction de bénéfice ≤ 42 500 € pour les PME éligibles). *(Taux à revérifier à la date de consultation.)*
+
+> ⚠️ **Précision** : il n'existe pas de « taux d'IS de 32 % ». Le taux normal d'IS est de **25 %** depuis 2022. Le « 32 % » parfois évoqué dans la littérature ancienne renvoyait à d'autres régimes (ex. ancienne fraction majorée applicable à certaines plus-values immobilières chez les marchands de biens / SIIC, ou anciens barèmes IS antérieurs à la trajectoire de baisse), et **ne doit pas être appliqué** à une plus-value professionnelle de droit commun.
 
 #### Cas particulier — matériel BTP usagé
 

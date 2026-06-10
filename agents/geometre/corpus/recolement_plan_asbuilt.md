@@ -136,13 +136,15 @@ Toute construction ou tranchée nécessite des **DT-DICT** :
 
 ### Précision des plans réseaux
 
-#### Classes de précision (arrêté 15 fév. 2012)
+#### Classes de précision (art. R.554-23 code env. + arrêté 15 fév. 2012)
 
-| Classe | Précision | Application |
+| Classe | Incertitude max de localisation | Application |
 |---|---|---|
-| **A** | ± 40 cm | Plans **fiables** — préférée |
-| **B** | ± 1,5 m | Plans **incertains** — moins fiable |
-| **C** | > 1,5 m | Plans **non géoréférencés** — non fiable |
+| **A** | **≤ 40 cm** | Plans **fiables** — préférée (obligatoire pour réseaux neufs) |
+| **B** | **40 cm à 150 cm** | Plans **incertains** — moins fiable |
+| **C** | **> 150 cm** (ou non géoréférencé) | Plans **non fiables** |
+
+> Jeu de classes harmonisé avec le corpus `dt_dict_reseaux.md` et le skill `dt_dict` : **A ≤ 40 cm**, **B de 40 à 150 cm**, **C > 150 cm**.
 
 #### Conséquences
 

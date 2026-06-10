@@ -1,6 +1,8 @@
 # Autoliquidation de la TVA dans le BTP
 
-**Source :** Code général des impôts (CGI) art. 283-2 nonies ; loi 2013-1278 du 29 déc. 2013 (création) ; BOI-TVA-DECLA-10-10-20 (doctrine fiscale BOFIP) ; ordonnance 2021-1190 du 15 sept. 2021.
+**Source :** Code général des impôts (CGI) art. 283, 2 nonies (couramment cité « art. 283 nonies ») ; loi 2013-1278 du 29 déc. 2013 (création) ; doctrine BOFIP série **BOI-TVA-DECLA-10-10-20** (autoliquidation par le preneur — *identifiant à revérifier à la date de consultation sur bofip.impots.gouv.fr*) ; ordonnance 2021-1190 du 15 sept. 2021.
+
+> **Note de référence interne** : l'identifiant BOFIP exact de la doctrine sur l'autoliquidation BTP doit être confirmé au moment de la consultation (la structure des séries BOI-TVA évolue). Citer génériquement « BOFIP série BOI-TVA, autoliquidation sous-traitance BTP » en cas de doute plutôt qu'un numéro non vérifié. Le fondement légal reste l'art. 283 (2 nonies) du CGI.
 
 ## Principe
 

@@ -111,7 +111,16 @@ La rénovation énergétique d'un logement combine :
 
 ## Aides mobilisables — détail
 
+> ⛔ **AVERTISSEMENT DE PÉREMPTION — LIRE AVANT TOUT CHIFFRAGE D'AIDE.**
+> Les montants forfaitaires MaPrimeRénov', les plafonds, les Coups de pouce CEE et les barèmes de TVA réduite ci-dessous sont des **ordres de grandeur datés (référence 2024), périmés ou modifiés au moins une fois par an** (arrêtés annuels ANAH, gel/réouverture de parcours, fermeture de Coups de pouce). **Ils ne doivent JAMAIS être utilisés comme valeurs engageantes.**
+> Pour tout chiffrage d'aide :
+> 1. Renvoyer **systématiquement** l'utilisateur aux **simulateurs officiels** : **maprimerenov.gouv.fr** (MPR), **france-renov.gouv.fr** (vue d'ensemble), site du fournisseur d'énergie obligé (CEE).
+> 2. Présenter les montants ci-dessous comme **« ordre de grandeur, à actualiser à la date de dépôt du dossier »**.
+> 3. Rappeler que l'éligibilité dépend de la **date de dépôt**, du **revenu fiscal de référence** et de la **version du barème en vigueur ce jour-là**.
+
 ### MaPrimeRénov' (parcours par geste)
+
+> ⚠️ Forfaits ci-dessous = **ordre de grandeur 2024, à actualiser à la date de consultation** via maprimerenov.gouv.fr.
 
 #### Pour ménages **Très Modestes (Bleu)**
 

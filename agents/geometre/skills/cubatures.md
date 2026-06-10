@@ -70,16 +70,19 @@ V = (L / 3) × (S_0 + 4 × S_impair + 2 × S_pair + S_n)
 
 Le **foisonnement** mesure l'augmentation de volume entre terre **en place** et terre **après excavation** (cassures, vides).
 
-| Type de sol | Coefficient de foisonnement | Coefficient de compactage |
+> **Table de référence harmonisée** avec le corpus `methodes_cubatures.md` (ordres de grandeur indicatifs NF P 11-300 / GTR — à confirmer par essais de sol G2 et planche d'essais de remblai ; valeurs à revérifier à la date de consultation).
+
+| Type de sol | Coefficient de foisonnement (Cf) | Coefficient de compactage (Cc) |
 |---|---|---|
-| **Terre végétale** | 1,20 à 1,25 | 0,90 |
-| **Argile** | 1,20 à 1,35 | 0,90 à 0,95 |
-| **Sable** | 1,10 à 1,15 | 0,95 |
-| **Grave** | 1,15 à 1,25 | 0,90 à 0,95 |
-| **Marne** | 1,25 à 1,40 | 0,85 à 0,90 |
-| **Calcaire altéré** | 1,30 à 1,45 | 0,90 |
-| **Rocher abattu (explosif)** | 1,40 à 1,80 | 0,75 à 0,85 |
-| **Rocher dur (ripper)** | 1,30 à 1,60 | 0,80 |
+| **Terre végétale** | 1,15 à 1,25 | 0,90 à 0,95 |
+| **Argile sèche** | 1,15 à 1,30 | 0,90 |
+| **Argile saturée** | 1,15 à 1,25 | 0,85 à 0,90 |
+| **Limon** | 1,15 à 1,25 | 0,88 |
+| **Sable** | 1,10 à 1,20 | 0,92 |
+| **Grave naturelle** | 1,20 à 1,25 | 0,95 |
+| **Marne** | 1,30 à 1,40 | 0,85 |
+| **Roche concassée** | 1,35 à 1,50 | 0,80 à 0,90 |
+| **Rocher massif tiré à l'explosif** | 1,50 à 1,80 | — |
 
 ⚠️ **Distinction fondamentale** :
 - **Volume en place** (déblai mesuré en profil terre vierge)

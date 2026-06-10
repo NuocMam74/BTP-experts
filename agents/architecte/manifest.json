@@ -27,7 +27,10 @@
     { "id": "verifier_abf_secteur_protege", "label": "Vérifier un projet en abords MH / SPR (avis ABF)", "output_formats": ["docx", "pdf"] },
     { "id": "audit_energetique_passoire", "label": "Audit énergétique passoire + plan rénovation + aides", "output_formats": ["docx", "pdf", "xlsx"] },
     { "id": "verifier_ccmi_garanties", "label": "Vérifier un contrat CCMI et ses garanties", "output_formats": ["docx", "pdf"] },
-    { "id": "cloture_chantier_doe_diuo", "label": "Clôturer un chantier (AOR, DOE, DIUO, DAACT)", "output_formats": ["docx", "pdf", "xlsx"] }
+    { "id": "cloture_chantier_doe_diuo", "label": "Clôturer un chantier (AOR, DOE, DIUO, DAACT)", "output_formats": ["docx", "pdf", "xlsx"] },
+    { "id": "monter_dossier_autorisation", "label": "Monter un dossier d'autorisation d'urbanisme (PC/DP/PA/PD)", "output_formats": ["docx", "pdf"] },
+    { "id": "cadrer_mission_honoraires", "label": "Cadrer une mission MOE & estimer les honoraires", "output_formats": ["docx", "xlsx", "pdf"] },
+    { "id": "qualifier_desordre_garantie", "label": "Qualifier un désordre & mobiliser la garantie (GPA/biennale/décennale/DO)", "output_formats": ["docx", "pdf"] }
   ],
   "tools": [
     { "name": "calc_surfaces", "type": "javascript_function" },

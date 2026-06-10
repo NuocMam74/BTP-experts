@@ -85,6 +85,8 @@ Pour chaque action de rénovation :
 
 ### 4. Calculer les aides
 
+> ⛔ **AVERTISSEMENT DE PÉREMPTION — OBLIGATOIRE.** Tous les forfaits MaPrimeRénov', plafonds, Coups de pouce CEE et taux de TVA réduite ci-dessous sont des **ordres de grandeur datés (2024), révisés au moins chaque année** et susceptibles de gel/réouverture en cours d'année. **Ne jamais les présenter comme engageants.** À chaque chiffrage d'aide : renvoie l'utilisateur aux **simulateurs officiels (maprimerenov.gouv.fr, france-renov.gouv.fr)** et mentionne « ordre de grandeur, à actualiser à la date de dépôt du dossier ». L'aide finale dépend du barème en vigueur **le jour du dépôt**.
+
 #### A. MaPrimeRénov' (parcours par geste)
 
 ##### Pour la catégorie **Bleu** (très modestes)

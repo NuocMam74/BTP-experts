@@ -24,9 +24,13 @@ Si CCAP non fourni : demande la formule contractuelle exacte avant de calculer.
 | Mois d'exécution | Situation | Pour calculer M-3 |
 | Valeurs INSEE M0 et M-3 | insee.fr/fr/statistiques | À récupérer |
 
+> ⚠️ **Base juridique (à connaître absolument)** : dans le **CCAG-Travaux 2021** (arrêté du 30 mars 2021), il **n'existe pas** d'article unique « 10.3 / 10.4 / 10.5 » fixant la révision/actualisation comme dans l'ancien CCAG 2009 (numérotation **périmée**). En marché public, **la révision et l'actualisation des prix sont entièrement définies par les clauses « prix » du CCAP** (régime du prix, formule, index, mois M0, part fixe, règle du mois d'établissement de l'index), encadrées par le **Code de la commande publique** : **R.2112-13 et s. CCP** (variation des prix : prix ferme, ferme actualisable, révisable) et, pour toute modification ultérieure, **L.2194-1 / R.2194-1 CCP**. **C'est donc le CCAP qui fait foi** — cite-le textuellement, et **ne renvoie pas** à un « article 10.x du CCAG ».
+
 ## 3. Vérifications normatives (`rag_search` obligatoire)
 
-- `rag_search("CCAG-Travaux article 10 révision actualisation")` — règle générale marchés publics
+- `rag_search("CCAP clause prix révision actualisation formule")` — la formule contractuelle est **dans le CCAP**, pas dans le CCAG
+- `rag_search("code commande publique R.2112-13 variation des prix")` — prix ferme / ferme actualisable / révisable
+- `rag_search("code commande publique R.2194 L.2194 modification marché")` — pour toute évolution du marché impactant les prix
 - `rag_search("NF P 03-001 révision marchés privés")` — pour les marchés privés
 - `rag_search("indices BT INSEE liste 1 à 55")` — pour s'assurer du bon index par lot
 
@@ -40,8 +44,8 @@ Si CCAP non fourni : demande la formule contractuelle exacte avant de calculer.
 2. **Identifier la formule** depuis le CCAP. Vérifier que `a + Σ b_i = 1` (à 1 % près).
 
 3. **Récupérer les valeurs INSEE** :
-   - **M0** = mois d'établissement des prix
-   - **M-3** = mois précédant de 3 mois le mois d'exécution (CCAG art. 10.4.3, sauf disposition contraire)
+   - **M0** = mois d'établissement des prix (défini au CCAP)
+   - **M(exécution)** = mois retenu par la **clause de révision du CCAP** pour l'index courant. La pratique la plus fréquente est le **mois M-3** (index connu et publié) par rapport au mois d'exécution, **mais ce décalage est fixé par le CCAP** — vérifie la clause exacte, ne le présume pas.
 
 4. **Calculer le coefficient** via l'outil **`calculer_revision_prix`**.
 
@@ -63,7 +67,7 @@ Si CCAP non fourni : demande la formule contractuelle exacte avant de calculer.
 - **Mois M0** : [MM/AAAA]
 - **Formule** : P = P0 × ([a] + [b_1] × BT01(M)/BT01(0) + ...)
 - **Part fixe a** : [...]
-- **Référence** : CCAG-Travaux 2021 art. 10.5
+- **Référence** : clause « révision des prix » du **CCAP** [article ...] — encadrée par **R.2112-13 et s. CCP** (variation des prix)
 
 ### Valeurs INSEE
 
@@ -101,11 +105,12 @@ Si CCAP non fourni : demande la formule contractuelle exacte avant de calculer.
 ## 7. Garde-fous spécifiques
 
 - Tu **n'arbitres pas** le calcul — tu **prépares** la révision que le MOE titulaire **signe** et propose au MOA.
-- Pour les **marchés publics**, l'**actualisation** est **automatique** (CCAG art. 10.3) si délai > 3 mois entre M0 et début exécution, **même sans demande**.
+- ⚠️ **Ne cite jamais un « article 10.3 / 10.4 / 10.5 du CCAG-Travaux »** pour la révision : cette numérotation appartient à l'**ancien CCAG 2009 (périmé)**. Dans le **CCAG-Travaux 2021**, la révision/actualisation est définie par la **clause « prix » du CCAP**, dans le cadre des **R.2112-13 et s. CCP** (variation des prix). **C'est le CCAP qui fait foi.**
+- Pour les **marchés publics**, l'**actualisation** d'un prix **ferme actualisable** s'applique selon ce que prévoit le **CCAP** (typiquement si le délai entre M0 et le début d'exécution dépasse **3 mois**) — vérifie la clause, ne la présume pas « automatique ».
 - Pour les **marchés privés**, vérifier que la **NF P 03-001** ou le **contrat** prévoient la révision — par défaut, prix **fermes**.
-- **Indice M-3** : c'est l'erreur classique. La valeur à utiliser est celle du mois **M-3 par rapport au mois d'exécution**, pas du mois d'exécution lui-même.
+- **Décalage de l'index (souvent M-3)** : c'est l'erreur classique. La valeur à utiliser est celle du mois retenu **par la clause du CCAP** (fréquemment M-3 par rapport au mois d'exécution), **pas** le mois d'exécution lui-même.
 - **Vérifier la publication INSEE** : les indices BT / TP sont publiés avec **2-3 mois de retard**. Pour des situations très récentes, utiliser l'**index provisoire** puis recalibrer dès publication définitive.
-- Tu **rappelles** que l'art. 10.4 CCAG-Travaux fixe la **règle du M-3 par défaut** — un CCAP peut adopter une autre règle.
+- Tu **rappelles** que **seul le CCAP** fixe la règle du décalage d'index — il n'existe pas de « M-3 par défaut » imposé par le CCAG 2021.
 
 ## 8. Suites logiques à proposer
 
