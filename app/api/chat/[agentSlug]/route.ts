@@ -39,26 +39,45 @@ function sseEncode(event: string, data: unknown): Uint8Array {
 }
 
 // Quantized local models occasionally degenerate into emitting the same
-// paragraph 10–100+ times until the context window runs out. Detection rule:
-// look at the trailing ~6 000 chars of the answer, split into "signatures"
-// (trimmed lines, digits normalised so "70." / "71." collapse to "#."), and
-// if any signature ≥40 chars appears ≥4 times → we're stuck in a loop.
+// paragraph 10–100+ times until the context window runs out. We must catch that
+// WITHOUT tripping on legitimate enumerations — BTP answers are full of repeated
+// labels (room by room, DPGF line by line) where only the numbers change.
+//
+// Detection rule: a real loop repeats a block of lines VERBATIM and ADJACENTLY.
+// We look at the trailing window, take the trimmed non-blank lines (keeping their
+// exact text, digits included), and check whether the last N lines are an exact
+// repeat of the N lines just before them, for 3 consecutive blocks. An item list
+// fails this (room names / numbers differ), a degenerate loop passes it.
 const LOOP_TAIL_CHARS = 6000;
-const LOOP_MIN_LINE_LEN = 40;
-const LOOP_THRESHOLD = 4;
+const LOOP_REPEATS = 3; // how many adjacent identical blocks signal a loop
+const LOOP_MAX_PERIOD = 50; // max block size (in lines) to test
+const LOOP_MIN_BLOCK_CHARS = 40; // ignore trivial repeats ("---", a short word)
 function detectRepetitionLoop(text: string): boolean {
-  if (text.length < 800) return false;
+  if (text.length < 1000) return false;
   const tail = text.slice(-LOOP_TAIL_CHARS);
-  const sigs = tail
+  const lines = tail
     .split("\n")
-    .map((l) => l.trim().toLowerCase().replace(/\d+/g, "#"))
-    .filter((l) => l.length >= LOOP_MIN_LINE_LEN);
-  if (sigs.length < LOOP_THRESHOLD * 2) return false;
-  const counts = new Map<string, number>();
-  for (const s of sigs) {
-    const c = (counts.get(s) ?? 0) + 1;
-    if (c >= LOOP_THRESHOLD) return true;
-    counts.set(s, c);
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  const n = lines.length;
+  if (n < LOOP_REPEATS) return false;
+
+  const maxPeriod = Math.min(LOOP_MAX_PERIOD, Math.floor(n / LOOP_REPEATS));
+  for (let p = 1; p <= maxPeriod; p++) {
+    let identical = true;
+    // Compare the last `p` lines against the `p` lines preceding each earlier block.
+    for (let r = 1; r < LOOP_REPEATS && identical; r++) {
+      for (let i = 0; i < p; i++) {
+        if (lines[n - 1 - i] !== lines[n - 1 - i - p * r]) {
+          identical = false;
+          break;
+        }
+      }
+    }
+    if (identical) {
+      const blockChars = lines.slice(n - p).join("\n").length;
+      if (blockChars >= LOOP_MIN_BLOCK_CHARS) return true;
+    }
   }
   return false;
 }
