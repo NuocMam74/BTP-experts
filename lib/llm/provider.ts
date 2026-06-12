@@ -33,6 +33,19 @@ export function resolveProvider(agentModel?: string): Provider {
   return "lmstudio";
 }
 
+// Whether the resolved model can actually SEE images (multimodal input).
+//   - Anthropic (Claude) models are multimodal → always true.
+//   - LM Studio serves whatever single model you loaded; we can't introspect its
+//     capabilities reliably, so vision is OFF by default and you opt in with
+//     OPENAI_VISION=true once you've loaded a vision model (e.g. Qwen2.5-VL).
+// When this returns false, the chat route skips attaching images and instead
+// tells the agent the document is a visual it cannot read — no hallucination.
+export function isVisionEnabled(agentModel?: string): boolean {
+  if (resolveProvider(agentModel) === "anthropic") return true;
+  const v = process.env.OPENAI_VISION?.toLowerCase().trim();
+  return v === "true" || v === "1" || v === "yes" || v === "on";
+}
+
 export function getModel(agentModel?: string): LanguageModel {
   const provider = resolveProvider(agentModel);
   if (provider === "anthropic") {

@@ -8,6 +8,7 @@ import { db, schema } from "@/lib/db/client";
 import { loadAgent } from "@/lib/agent-runtime/loadManifest";
 import { streamAgentResponse } from "@/lib/agent-runtime/runConversation";
 import { loadSkillPrompt } from "@/lib/agent-runtime/skills";
+import { isVisionEnabled } from "@/lib/llm/provider";
 import { checkEntitlement } from "@/lib/billing/entitlements";
 import { renderPdfToImageDataUrls } from "@/lib/parsers/pdf";
 import {
@@ -190,6 +191,7 @@ export async function POST(
   // upload turn. The most recent docs are prioritised and the total is bounded to
   // protect the context window.
   const MAX_VISUAL_DOCS = 3;
+  const visionEnabled = isVisionEnabled(agent.model);
   const visualDocs = docs
     .filter((d) => {
       const kind = (d.metadata as { kind?: string } | null)?.kind;
@@ -200,7 +202,10 @@ export async function POST(
     })
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, MAX_VISUAL_DOCS);
-  const imageParts = await buildImageParts(visualDocs);
+  // Only attach images when the model can actually see them. With a text-only
+  // model, attaching the image makes it hallucinate; instead we leave it out and
+  // the attachmentsContext below tells the agent it cannot read the visual.
+  const imageParts = visionEnabled ? await buildImageParts(visualDocs) : [];
   if (imageParts.length > 0) {
     attachImagesToLastUserMessage(modelMessages, imageParts);
   }
@@ -226,10 +231,14 @@ export async function POST(
               return `${header}\n\n${text}`;
             }
             if (kindLabel === "image") {
-              return `${header}\n\n_(Image jointe à ce message en entrée visuelle — analyse-la directement. Lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation à l'utilisateur avant de chiffrer.)_`;
+              return visionEnabled
+                ? `${header}\n\n_(Image jointe à ce message en entrée visuelle — analyse-la directement. Lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation à l'utilisateur avant de chiffrer.)_`
+                : `${header}\n\n_(Image jointe, mais le modèle actuellement chargé ne lit pas les images. Ne devine pas son contenu : explique à l'utilisateur qu'il faut charger un modèle de vision (ex. Qwen2.5-VL) dans LM Studio et activer OPENAI_VISION=true, ou décrire l'image / fournir un PDF-texte/XLSX/DOCX.)_`;
             }
             if (kindLabel === "pdf") {
-              return `${header}\n\n_(PDF sans texte exploitable — ses pages sont jointes à ce message en images (entrée visuelle). Analyse-les directement : lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation avant de chiffrer.)_`;
+              return visionEnabled
+                ? `${header}\n\n_(PDF sans texte exploitable — ses pages sont jointes à ce message en images (entrée visuelle). Analyse-les directement : lis les cotes/annotations lisibles ; si une dimension est ambiguë, demande confirmation avant de chiffrer.)_`
+                : `${header}\n\n_(PDF sans texte exploitable (scan/plan). Le modèle actuellement chargé ne lit pas les images : ne devine pas son contenu. Explique à l'utilisateur qu'il faut charger un modèle de vision (ex. Qwen2.5-VL) et activer OPENAI_VISION=true, ou fournir une version texte.)_`;
             }
             return `${header}\n\n_(Le contenu textuel de ce fichier n'a pas pu être extrait automatiquement. Demande à l'utilisateur de coller le contenu pertinent ou de fournir un PDF/XLSX/DOCX/TXT.)_`;
           })

@@ -33,6 +33,12 @@ Voir [SPEC_AGENTS_BTP.md](./SPEC_AGENTS_BTP.md) pour la spécification produit c
   - Un modèle d'**embeddings** multilingue 1024 dimensions (recommandé : `BAAI/bge-m3` ou `intfloat/multilingual-e5-large`)
 - Activer **Local Server** dans LM Studio (port 1234 par défaut)
 
+> **Lecture d'images / PDF scannés (vision).** Les fichiers texte (DOCX, XLSX, PDF-texte, CSV…)
+> sont lus avec n'importe quel modèle de chat. Pour lire des **images** (JPEG/PNG) ou des
+> **PDF scannés/plans**, charge un modèle **multimodal** (ex. `qwen2.5-vl-7b-instruct`) et
+> mets `OPENAI_VISION=true` dans `.env.local`. Sans cela, l'app n'enverra pas l'image au
+> modèle (pour éviter une réponse inventée) et invitera l'utilisateur à charger un modèle de vision.
+
 ### 2. Installation
 
 ```powershell
@@ -48,6 +54,7 @@ copy .env.example .env.local
 Adapte ensuite :
 - `OPENAI_MODEL` → nom du modèle de chat servi par LM Studio
 - `EMBEDDING_MODEL` → nom du modèle d'embeddings (par défaut `text-embedding-bge-m3`)
+- `OPENAI_VISION` → `true` si le modèle chargé est multimodal (lecture d'images/PDF scannés)
 
 ### 4. Migration de la base
 
@@ -120,19 +127,30 @@ npm run typecheck     # tsc --noEmit
 
 ## Agents disponibles
 
+Les 6 agents sont implémentés : system prompt, corpus normatif indexé (≈ 85–92 chunks chacun) et skills rédigés.
+
 | Agent | Skills clés | Statut |
 |---|---|---|
-| **Architecte DPLG / HMONP** | Vérifier PMR, Analyser PLU, Calculer surfaces (SDP/SHAB/Carrez), Vérifier ERP | Corpus seed (2 fichiers), skills `calculer_surfaces` + `verifier_pmr` rédigés |
-| **Économiste de la construction** | Métré quantitatif, Chiffrer DPGF, Sous-détail de prix, Ratio m², Comparer offres | Corpus seed (4 fichiers), skills `chiffrer_dpgf` + `ratio_m2` rédigés |
-| MOEX, Géomètre, Ingénieur structure, Expert-comptable BTP | Définis dans le SPEC | À implémenter |
+| **Architecte DPLG / HMONP** | Calculer surfaces (SDP/SHAB/Carrez), Analyser PLU, RE2020, Monter dossier d'autorisation, Vérifier ERP | Opérationnel (~18 skills) |
+| **Économiste de la construction** | Métré quantitatif, Chiffrer DPGF, Sous-détail de prix, Ratio m², Comparer offres, Réviser prix, TVA travaux | Opérationnel (~18 skills) |
+| **MOEX (maîtrise d'œuvre d'exécution)** | Viser plan EXE, Contrôle situation/DTU, OS, Réserves OPR, Révision, Compte prorata, Sous-traitance | Opérationnel (~22 skills) |
+| **Géomètre-expert** | Bornage, Division parcellaire, EDD copropriété, Servitudes, Cubatures, DT/DICT, Fiscalité foncière | Opérationnel (~17 skills) |
+| **Ingénieur structure** | Prédim béton/poutre/poteau, Descente de charges, Zonage sismique, Stabilité au feu, Assemblages acier, Pathologie béton | Opérationnel (~21 skills) |
+| **Expert-comptable BTP** | Situations de travaux, Autoliquidation, Sous-traitance 1975, Paie BTP, TVA, Trésorerie, Facturation électronique | Opérationnel (~21 skills) |
 
 ## Outils outillés disponibles
 
 | Tool | Description | Utilisé par |
 |---|---|---|
+| `rag_search` | Recherche hybride (sémantique vec0 + lexicale BM25/FTS5, fusion RRF) dans le corpus de l'agent | Tous |
+| `generer_rapport` | Génère un livrable téléchargeable (PDF/DOCX/XLSX/PPTX) | Tous (si activé) |
 | `calc_surfaces` | Calcule SDP / SHAB / Carrez avec exclusions correctes (h < 1,80 m, copropriété, etc.) | Architecte |
 | `ratio_m2` | Fourchette indicative €/m² SDP par destination et région (logement, bureaux, ERP, etc.) | Économiste |
-| `rag_search` | Recherche sémantique KNN dans le corpus de l'agent | Tous |
+| `calculer_revision_prix` | Révision/actualisation de prix (index BT, formule de révision) | Économiste, MOEX |
+| `calculer_tva_travaux` | Détermine le taux de TVA travaux applicable (5,5 / 10 / 20 %) | Économiste, Expert-comptable |
+| `calculer_cubatures` | Calcul de cubatures / terrassements | Géomètre |
+| `predim_beton_arme` | Prédimensionnement béton armé (poutre / poteau / dalle) | Ingénieur structure |
+| `recuperer_plu` | Interroge apicarto.ign.fr + api-adresse.data.gouv.fr (Géoportail-de-l'urbanisme) | Architecte |
 
 ---
 
@@ -151,11 +169,12 @@ La séparation actuelle (`lib/db/client.ts`, `lib/llm/embeddings.ts`) rend la ba
 
 ## Ce qu'il reste à faire
 
-Voir issues GitHub / TODO interne. Principaux chantiers :
+Voir issues GitHub / TODO interne. Principaux chantiers avant une vraie mise en production SaaS :
 
-- 4 autres agents (MOEX, géomètre, ingénieur structure, expert-comptable BTP)
-- Stripe + entitlements (`user_agents`)
-- UI tool calls structurée (via `@ai-sdk/react`)
-- Mode B2B : organizations, équipes, SSO
-- Observabilité (Sentry + PostHog)
-- Plus de corpus normatif (Eurocodes, DTU, BOFIP en profondeur)
+- Migration SQLite → Postgres + pgvector (l'app est aujourd'hui mono-instance : SQLite et le rate-limiter en mémoire ne supportent pas le multi-instance / serverless)
+- Stripe + entitlements (`user_agents`) en production
+- Mode B2B : organizations, équipes, SSO (OIDC)
+- Durcissement auth : vérification email, reset mot de passe, rate-limit anti-bruteforce sur le login
+- Conformité : mentions légales, CGU, RGPD/DPA, hébergement des documents clients
+- Observabilité (Sentry déjà câblé, optionnel via `SENTRY_DSN` + PostHog)
+- Approfondir le corpus normatif (Eurocodes, DTU, BOFIP)

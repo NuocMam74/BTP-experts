@@ -1,15 +1,30 @@
 "use server";
 
 import { AuthError } from "next-auth";
+import { headers } from "next/headers";
 
 import { signIn } from "@/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export type SigninState = { error?: string };
+
+function callerIp(): string {
+  const h = headers();
+  const xf = h.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0]!.trim();
+  return h.get("x-real-ip") ?? "unknown";
+}
 
 export async function signinAction(
   _prev: SigninState,
   formData: FormData,
 ): Promise<SigninState> {
+  // Throttle login attempts per IP to blunt credential-stuffing / brute force.
+  const rl = checkRateLimit(`signin:${callerIp()}`, 10, 60_000);
+  if (!rl.allowed) {
+    return { error: "Trop de tentatives. Réessayez dans une minute." };
+  }
+
   const email = formData.get("email");
   const password = formData.get("password");
   const callbackUrl =

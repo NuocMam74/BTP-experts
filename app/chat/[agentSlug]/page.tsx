@@ -7,6 +7,7 @@ import { auth } from "@/auth";
 import { listAgents, loadAgent } from "@/lib/agent-runtime/loadManifest";
 import { db, schema } from "@/lib/db/client";
 import { loadConversationMessages } from "@/lib/db/messages";
+import { describeKind, type ParsedKind } from "@/lib/parsers";
 
 import { ChatUI } from "./chat-ui";
 
@@ -38,6 +39,14 @@ export default async function ChatPage({
   let initialConversationId: string | null = null;
   let currentProjectId: string | null = null;
   let currentTags: string[] = [];
+  let initialDocs: Array<{
+    documentId: string;
+    filename: string;
+    pages: number | null;
+    parsed: boolean;
+    kind?: string;
+    kindLabel?: string;
+  }> = [];
 
   if (searchParams.conversationId) {
     const stored = await loadConversationMessages(
@@ -58,8 +67,29 @@ export default async function ChatPage({
       const conv = await db.query.conversations.findFirst({
         where: eq(schema.conversations.id, searchParams.conversationId),
       });
-      currentProjectId = conv?.projectId ?? null;
-      currentTags = (conv?.tags as string[] | null) ?? [];
+      // Only expose the documents if the conversation belongs to the caller.
+      if (conv && conv.userId === session.user.id) {
+        currentProjectId = conv.projectId ?? null;
+        currentTags = (conv.tags as string[] | null) ?? [];
+        const storedDocs = await db.query.documents.findMany({
+          where: eq(schema.documents.conversationId, searchParams.conversationId),
+        });
+        initialDocs = storedDocs.map((d) => {
+          const meta = (d.metadata ?? {}) as {
+            kind?: ParsedKind;
+            pages?: number | null;
+          };
+          const kind = meta.kind ?? "unknown";
+          return {
+            documentId: d.id,
+            filename: d.filename,
+            pages: meta.pages ?? null,
+            parsed: d.parsedText != null,
+            kind,
+            kindLabel: describeKind(kind),
+          };
+        });
+      }
     }
   }
 
@@ -168,6 +198,7 @@ export default async function ChatPage({
         allAgents={allAgents.map((a) => ({ slug: a.slug, name: a.name }))}
         initialMessages={initialMessages}
         initialConversationId={initialConversationId}
+        initialDocs={initialDocs}
         initialProjectId={currentProjectId}
         initialTags={currentTags}
         projects={projects.map((p) => ({

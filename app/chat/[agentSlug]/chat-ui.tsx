@@ -11,6 +11,8 @@ import "katex/dist/katex.min.css";
 
 import { AGENT_ACCENT, AgentIcon } from "@/components/AgentIcon";
 import { DiagnosticsModal } from "@/components/LmStudioDiagnostics";
+import { DocumentPreview } from "@/components/DocumentPreview";
+import { ChartBlock } from "@/components/ChartBlock";
 import { useConfirm, usePrompt, useToast } from "@/components/ui/Toast";
 import type { AgentManifest } from "@/lib/agent-runtime/types";
 
@@ -162,12 +164,34 @@ function isNumericCell(children: React.ReactNode): boolean {
   return t.length > 0 && /\d/.test(t) && NUMERIC_CELL.test(t);
 }
 
+// Pulls the concatenated text value out of a hast <code> element node. Used to
+// recover the raw ```chart JSON without relying on React children parsing.
+function hastCodeText(node: unknown): string {
+  const codeEl = (node as { children?: Array<{ tagName?: string; properties?: { className?: unknown }; children?: Array<{ value?: string }> }> } | undefined)?.children?.[0];
+  if (!codeEl || codeEl.tagName !== "code") return "";
+  return (codeEl.children ?? []).map((c) => c.value ?? "").join("");
+}
+
+function hastCodeIsChart(node: unknown): boolean {
+  const codeEl = (node as { children?: Array<{ tagName?: string; properties?: { className?: unknown } }> } | undefined)?.children?.[0];
+  const cls = codeEl?.properties?.className;
+  return Array.isArray(cls) && cls.includes("language-chart");
+}
+
 const CHAT_MARKDOWN_COMPONENTS: Components = {
   a: ({ node: _n, children, href, ...props }) => (
     <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
       {children}
     </a>
   ),
+  // Intercept ```chart fenced blocks and render them as an SVG chart. Any other
+  // fenced/code block falls through to the default <pre>.
+  pre: ({ node, children, ...props }) => {
+    if (hastCodeIsChart(node)) {
+      return <ChartBlock raw={hastCodeText(node)} />;
+    }
+    return <pre {...props}>{children}</pre>;
+  },
   // Wrap tables so wide ones (DPGF, métré…) scroll horizontally instead of
   // overflowing or crushing the chat bubble.
   table: ({ node: _n, children, ...props }) => (
@@ -243,6 +267,7 @@ export function ChatUI({
   allAgents,
   initialMessages,
   initialConversationId,
+  initialDocs = [],
   initialProjectId,
   initialTags,
   projects: initialProjects,
@@ -252,6 +277,7 @@ export function ChatUI({
   allAgents: AgentRef[];
   initialMessages: Message[];
   initialConversationId: string | null;
+  initialDocs?: UploadedDoc[];
   initialProjectId: string | null;
   initialTags: string[];
   projects: ProjectSummary[];
@@ -266,7 +292,9 @@ export function ChatUI({
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeSkillId, setActiveSkillId] = useState<string | null>(null);
-  const [docs, setDocs] = useState<UploadedDoc[]>([]);
+  const [docs, setDocs] = useState<UploadedDoc[]>(initialDocs);
+  // Document currently open in the preview modal (null = closed).
+  const [previewDoc, setPreviewDoc] = useState<UploadedDoc | null>(null);
   // Last successfully uploaded doc — shown as a confirmation banner in the thread.
   const [uploadNotice, setUploadNotice] = useState<UploadedDoc | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(
@@ -350,7 +378,7 @@ export function ChatUI({
     setConversationId(initialConversationId);
     setProjectId(initialProjectId);
     setTags(initialTags);
-    setDocs([]);
+    setDocs(initialDocs);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialConversationId]);
 
@@ -895,6 +923,10 @@ export function ChatUI({
     >
       <DiagnosticsModal open={diagOpen} onClose={() => setDiagOpen(false)} />
 
+      {previewDoc && (
+        <DocumentPreview doc={previewDoc} onClose={() => setPreviewDoc(null)} />
+      )}
+
       {isDragging && (
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm">
           <div className="rounded-md border border-dashed border-foreground/40 bg-surface-elevated p-8 text-center">
@@ -1121,7 +1153,14 @@ export function ChatUI({
                   <span className="rounded bg-muted px-1 font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
                     {fileExt(d.filename)}
                   </span>
-                  <span className="max-w-[180px] truncate">{d.filename}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewDoc(d)}
+                    className="max-w-[180px] truncate underline-offset-2 hover:underline"
+                    title="Aperçu du document"
+                  >
+                    {d.filename}
+                  </button>
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${d.parsed || d.kind === "image" ? "bg-emerald-500" : "bg-amber-500"}`}
                     title={d.kind === "image" ? "Analysée (vision)" : d.parsed ? "Lu" : "Non lu"}
@@ -1289,6 +1328,12 @@ export function ChatUI({
               Tester LM Studio
             </button>
           </div>
+          <p className="mt-2 text-[10px] leading-snug text-muted-foreground/80">
+            Réponses générées par IA à partir d&apos;un corpus normatif. Aide à la
+            décision — ne se substitue pas à l&apos;avis d&apos;un professionnel
+            habilité (architecte, BET, géomètre-expert, expert-comptable…).
+            Vérifiez systématiquement les références citées avant toute décision.
+          </p>
         </form>
       </section>
     </div>

@@ -3,11 +3,20 @@
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { z } from "zod";
 
 import { db, schema } from "@/lib/db/client";
 import { hashPassword } from "@/lib/auth/passwords";
 import { signIn } from "@/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+function callerIp(): string {
+  const h = headers();
+  const xf = h.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0]!.trim();
+  return h.get("x-real-ip") ?? "unknown";
+}
 
 const signupSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -24,6 +33,13 @@ export async function signupAction(
   _prev: SignupState,
   formData: FormData,
 ): Promise<SignupState> {
+  // Throttle account creation per IP to prevent automated mass sign-ups
+  // (which would also burn local GPU/LLM resources).
+  const rl = checkRateLimit(`signup:${callerIp()}`, 5, 60_000);
+  if (!rl.allowed) {
+    return { error: "Trop de tentatives. Réessayez dans une minute." };
+  }
+
   const parsed = signupSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),

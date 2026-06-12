@@ -86,7 +86,16 @@ export async function POST(req: Request) {
 
   const uploadsDir = path.join(process.cwd(), "data", "uploads", convId);
   await fs.mkdir(uploadsDir, { recursive: true });
-  const storagePath = path.join(uploadsDir, `${randomUUID()}-${file.name}`);
+  // Sanitize the client-supplied filename before putting it on disk: strip any
+  // path components (both "/" and "\") and keep only safe characters, so a forged
+  // multipart filename like "../../etc/x" cannot escape the uploads directory.
+  // The original filename is still preserved untouched in the `documents` row.
+  const safeName =
+    path
+      .basename(file.name.replace(/\\/g, "/"))
+      .replace(/[^\w.\-]+/g, "_")
+      .slice(0, 120) || "fichier";
+  const storagePath = path.join(uploadsDir, `${randomUUID()}-${safeName}`);
   await fs.writeFile(storagePath, buffer);
 
   const parseResult = await parseAttachment(

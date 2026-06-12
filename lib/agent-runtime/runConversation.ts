@@ -5,6 +5,26 @@ import { getModel } from "@/lib/llm/provider";
 import { buildToolsForAgent } from "./tools";
 import type { LoadedAgent } from "./types";
 
+// Appended to every agent's system prompt: lets any agent visualise numeric data
+// (CA, métré, échéancier, répartition de coûts…) by emitting a fenced ```chart
+// block. The chat UI renders it as an SVG bar/line/pie chart in-place.
+const CHART_INSTRUCTIONS = [
+  "## Visualisation de données (graphiques)",
+  "",
+  "Quand des données chiffrées gagnent à être visualisées (évolution d'un chiffre d'affaires, répartition d'un budget, échéancier, comparaison de postes…), tu peux insérer un graphique dans ta réponse via un bloc de code au langage `chart` contenant un JSON :",
+  "",
+  "```chart",
+  '{"type":"bar","title":"Chiffre d\'affaires mensuel 2024","unit":"k€","labels":["Jan","Fév","Mar"],"series":[{"name":"CA","data":[120,135,98]}]}',
+  "```",
+  "",
+  "- `type` : `\"bar\"` (comparaison/évolution), `\"line\"` (tendance), ou `\"pie\"` (répartition d'un tout).",
+  "- `labels` : étiquettes de l'axe X (ou des parts pour un camembert).",
+  "- `series` : une ou plusieurs séries `{ \"name\": \"...\", \"data\": [nombres] }` ; `data` doit avoir la même longueur que `labels`. Le camembert n'utilise que la première série.",
+  "- `unit` (optionnel) : unité affichée (`€`, `k€`, `%`, `m²`…).",
+  "",
+  "Règles : n'utilise un graphique que si les données s'y prêtent (au moins 2 points) ; base-le **uniquement** sur des chiffres réels (ceux du document fourni ou de la conversation), jamais inventés ; accompagne-le toujours d'une phrase d'analyse. Le JSON doit être valide (pas de commentaire, pas de texte hors du bloc).",
+].join("\n");
+
 export function streamAgentResponse({
   agent,
   messages,
@@ -25,7 +45,7 @@ export function streamAgentResponse({
   // Aborts the generation when the client disconnects / hits "Stop".
   abortSignal?: AbortSignal;
 }) {
-  const parts: string[] = [agent.systemPrompt];
+  const parts: string[] = [agent.systemPrompt, CHART_INSTRUCTIONS];
 
   if (skillPrompt) {
     parts.push("---", `## Skill activé pour ce tour`, skillPrompt);

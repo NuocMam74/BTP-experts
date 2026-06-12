@@ -1,8 +1,47 @@
 import { withSentryConfig } from "@sentry/nextjs";
 
+// Content-Security-Policy. Pragmatic, not maximal: Next.js App Router injects
+// inline bootstrap scripts (no nonce wired up) and KaTeX/Tailwind inject inline
+// styles, so 'unsafe-inline' is required for script/style or the app breaks.
+// data:/blob: are allowed for images, fonts and the PDF-preview iframe.
+// connect-src 'self' is enough — the browser only talks to our own API (the IGN
+// PLU calls happen server-side). If something legitimate gets blocked, relax the
+// specific directive here (or remove this header) rather than disabling all CSP.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "frame-src 'self' blob: data:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
+
+const SECURITY_HEADERS = [
+  { key: "Content-Security-Policy", value: CSP },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=()",
+  },
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
+  },
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+  },
   experimental: {
     serverComponentsExternalPackages: [
       "better-sqlite3",
