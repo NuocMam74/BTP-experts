@@ -144,6 +144,47 @@ function normalizeMathDelimiters(md: string): string {
     .replace(/\\\)/g, () => "$");
 }
 
+// Local models sometimes emit a Markdown table collapsed onto a SINGLE line
+// (header, delimiter and body rows all glued together) and/or a delimiter row
+// whose column count doesn't match the header. remark-gfm then fails to parse it
+// and renders an unreadable pipe-soup. We repair such lines: split the cells,
+// take the header as the cells before the first delimiter cell, regenerate a
+// matching delimiter, and re-flow the remaining cells into rows.
+// Well-formed tables (delimiter on its own line) are left untouched.
+const TABLE_DELIM_CELL = /^:?-{2,}:?$/;
+function repairMarkdownTables(md: string): string {
+  if (!md.includes("|") || !md.includes("-")) return md;
+  const out: string[] = [];
+  for (const line of md.split("\n")) {
+    const cells = line
+      .split("|")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
+    const firstDelim = cells.findIndex((c) => TABLE_DELIM_CELL.test(c));
+    // firstDelim > 0 means header cells precede a delimiter run on the SAME line
+    // → collapsed table. (=== 0 is a normal standalone delimiter row; -1 = none.)
+    if (firstDelim <= 0) {
+      out.push(line);
+      continue;
+    }
+    let lastDelim = firstDelim;
+    while (lastDelim + 1 < cells.length && TABLE_DELIM_CELL.test(cells[lastDelim + 1]!)) {
+      lastDelim++;
+    }
+    const n = firstDelim; // header column count drives everything
+    const header = cells.slice(0, n);
+    const body = cells.slice(lastDelim + 1);
+    out.push(`| ${header.join(" | ")} |`);
+    out.push(`| ${header.map(() => "---").join(" | ")} |`);
+    for (let i = 0; i < body.length; i += n) {
+      const row = body.slice(i, i + n);
+      while (row.length < n) row.push("");
+      out.push(`| ${row.join(" | ")} |`);
+    }
+  }
+  return out.join("\n");
+}
+
 function mdNodeText(node: React.ReactNode): string {
   if (node == null || node === false || node === true) return "";
   if (typeof node === "string" || typeof node === "number") return String(node);
@@ -1893,7 +1934,7 @@ function MessageBubble({
                 rehypePlugins={CHAT_REHYPE_PLUGINS}
                 components={CHAT_MARKDOWN_COMPONENTS}
               >
-                {normalizeMathDelimiters(message.content)}
+                {repairMarkdownTables(normalizeMathDelimiters(message.content))}
               </ReactMarkdown>
             </div>
           ) : !hasActiveTools ? (
