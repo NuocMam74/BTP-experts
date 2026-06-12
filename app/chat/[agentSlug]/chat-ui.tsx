@@ -502,6 +502,18 @@ export function ChatUI({
               m.id === assistantId ? { ...m, content: accumulated } : m,
             ),
           );
+        } else if (event === "replace") {
+          // Server-side correction of the final text (e.g. a fabricated report
+          // download link rewritten to a real one). Replace the accumulated body.
+          const next = (data as { text?: string }).text;
+          if (typeof next === "string" && next.length > 0) {
+            accumulated = next;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, content: accumulated } : m,
+              ),
+            );
+          }
         } else if (event === "tool-call") {
           const d = data as { id: string; name: string };
           setMessages((prev) =>

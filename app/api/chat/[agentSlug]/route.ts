@@ -252,6 +252,11 @@ export async function POST(
   }
 
   const aggregatedCitations: Citation[] = [];
+  // Real downloadable reports produced by the `generer_rapport` tool THIS turn.
+  // Used to reconcile the assistant's text: a quantized local model sometimes
+  // fabricates a "/api/reports/<uuid>" download link without actually calling the
+  // tool, which 404s. We only trust links that correspond to a real generation.
+  const generatedReports: GeneratedReportRef[] = [];
   let assistantText = "";
   let persisted = false;
   // Durable id of the persisted assistant message — sent to the client in the
@@ -396,6 +401,8 @@ export async function POST(
               if (citations.length > 0) {
                 aggregatedCitations.push(...citations);
               }
+              const report = extractReport(p.toolName, p.output);
+              if (report) generatedReports.push(report);
               safeEnqueue(
                 sseEncode("tool-result", {
                   id: p.toolCallId,
@@ -415,6 +422,15 @@ export async function POST(
             default:
               break;
           }
+        }
+        // Reconcile any report download links the model wrote against the reports
+        // actually generated this turn. Fabricated links (hallucinated UUIDs) are
+        // rewritten to a real one when a report exists, or struck through with a
+        // note when none was generated — so the user never gets a dead 404 link.
+        const reconciled = reconcileReportLinks(assistantText, generatedReports);
+        if (reconciled !== assistantText) {
+          assistantText = reconciled;
+          safeEnqueue(sseEncode("replace", { text: assistantText }));
         }
         if (aggregatedCitations.length > 0) {
           safeEnqueue(
@@ -521,6 +537,65 @@ function attachImagesToLastUserMessage(
       return;
     }
   }
+}
+
+type GeneratedReportRef = { url: string; filename: string };
+
+// Pull the real download URL out of a `generer_rapport` tool result.
+function extractReport(
+  toolName: string | undefined,
+  output: unknown,
+): GeneratedReportRef | null {
+  if (toolName !== "generer_rapport" || !output || typeof output !== "object") {
+    return null;
+  }
+  const o = output as { download_url?: unknown; filename?: unknown };
+  if (typeof o.download_url !== "string" || o.download_url.length === 0) {
+    return null;
+  }
+  return {
+    url: o.download_url,
+    filename: typeof o.filename === "string" ? o.filename : "document",
+  };
+}
+
+// Matches a Markdown link whose href is a report download endpoint.
+const MD_REPORT_LINK_RE =
+  /\[([^\]]*)\]\((\/api\/reports\/[0-9a-fA-F-]{36})\)/g;
+// Matches a bare report URL (not wrapped in a Markdown link).
+const BARE_REPORT_URL_RE = /\/api\/reports\/[0-9a-fA-F-]{36}/g;
+
+// Ensures every report download link in the answer points to a report that was
+// actually generated this turn. Local models occasionally invent a plausible
+// link without calling the tool — those would 404. Strategy:
+//   - link URL matches a real generation  → keep as-is;
+//   - link URL is fabricated but ≥1 real report exists → rewrite to the real one;
+//   - link is fabricated and NO report was generated → strike it through + note.
+function reconcileReportLinks(
+  text: string,
+  reports: GeneratedReportRef[],
+): string {
+  if (!text || !text.includes("/api/reports/")) return text;
+  const realUrls = new Set(reports.map((r) => r.url));
+
+  let out = text.replace(MD_REPORT_LINK_RE, (full, label: string, url: string) => {
+    if (realUrls.has(url)) return full;
+    if (reports.length > 0) {
+      const r = reports[0]!;
+      const safeLabel = label?.trim() ? label : `📥 Télécharger ${r.filename}`;
+      return `[${safeLabel}](${r.url})`;
+    }
+    const safeLabel = label?.trim() ? label : "le document";
+    return `~~${safeLabel}~~ _(document non généré — relancez la demande)_`;
+  });
+
+  // Catch any stray bare URLs the regex above didn't cover.
+  out = out.replace(BARE_REPORT_URL_RE, (url) => {
+    if (realUrls.has(url)) return url;
+    return reports.length > 0 ? reports[0]!.url : url;
+  });
+
+  return out;
 }
 
 function extractCitations(toolName: string | undefined, output: unknown): Citation[] {
