@@ -9,30 +9,34 @@ import { generateMarkdown } from "./generators/md";
 import { generatePdf } from "./generators/pdf";
 import { generatePptx } from "./generators/pptx";
 import { generateXlsx } from "./generators/xlsx";
-import type { ReportFormat, ReportPayload } from "./types";
+import type { ArtifactFormat, ReportFormat, ReportPayload } from "./types";
 
 const REPORTS_DIR = path.join(process.cwd(), "data", "reports");
 
-const MIME_TYPE: Record<ReportFormat, string> = {
+const MIME_TYPE: Record<ArtifactFormat, string> = {
   md: "text/markdown; charset=utf-8",
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   pdf: "application/pdf",
   pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  png: "image/png",
+  jpg: "image/jpeg",
 };
 
-const EXTENSION: Record<ReportFormat, string> = {
+const EXTENSION: Record<ArtifactFormat, string> = {
   md: "md",
   docx: "docx",
   xlsx: "xlsx",
   pdf: "pdf",
   pptx: "pptx",
+  png: "png",
+  jpg: "jpg",
 };
 
 export type GeneratedReport = {
   id: string;
   filename: string;
-  format: ReportFormat;
+  format: ArtifactFormat;
   sizeBytes: number;
   downloadUrl: string;
   mimeType: string;
@@ -101,7 +105,56 @@ export async function generateReport(args: {
   };
 }
 
-export function getMimeType(format: ReportFormat): string {
+// Stores a pre-rendered binary artifact (e.g. an annotated plan PNG produced by
+// `annoter_image`) through the same reports table + /api/reports download layer
+// as generated reports. The bytes are written as-is — no section/table/slide
+// generation. Returns the same shape as generateReport so callers/UI treat it
+// uniformly (and the chat route's fabricated-link reconciliation covers it).
+export async function saveBinaryReport(args: {
+  userId: string;
+  agentSlug?: string;
+  conversationId?: string;
+  format: ArtifactFormat;
+  title: string;
+  buffer: Buffer;
+  metadata?: Record<string, unknown>;
+}): Promise<GeneratedReport> {
+  const { userId, agentSlug, conversationId, format, title, buffer, metadata } =
+    args;
+
+  const id = randomUUID();
+  const safeTitle = slugify(title);
+  const filename = `${safeTitle}.${EXTENSION[format]}`;
+
+  const userDir = path.join(REPORTS_DIR, userId, id);
+  await fs.mkdir(userDir, { recursive: true });
+  const storagePath = path.join(userDir, filename);
+  await fs.writeFile(storagePath, buffer);
+
+  await db.insert(schema.reports).values({
+    id,
+    userId,
+    conversationId: conversationId ?? null,
+    agentSlug: agentSlug ?? null,
+    format,
+    title,
+    filename,
+    storagePath,
+    sizeBytes: buffer.length,
+    metadata: metadata ?? {},
+  });
+
+  return {
+    id,
+    filename,
+    format,
+    sizeBytes: buffer.length,
+    downloadUrl: `/api/reports/${id}`,
+    mimeType: MIME_TYPE[format],
+  };
+}
+
+export function getMimeType(format: ArtifactFormat): string {
   return MIME_TYPE[format];
 }
 

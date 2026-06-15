@@ -9,12 +9,25 @@ export type Citation = {
   source_url: string | null;
 };
 
+// Downloadable deliverable produced in a turn, persisted alongside the assistant
+// message so its preview card survives a reload. `payload` (doc generators only)
+// holds the structured content used to render the inline preview.
+export type StoredReport = {
+  toolId: string;
+  tool: string;
+  format?: string;
+  filename?: string;
+  downloadUrl?: string;
+  payload?: unknown;
+};
+
 export type StoredMessage = {
   id: string;
   conversationId: string;
   role: "user" | "assistant" | "tool" | "system";
   content: { text: string };
   citations?: Citation[];
+  reports?: StoredReport[];
   createdAt: Date;
 };
 
@@ -87,13 +100,16 @@ export async function loadConversationMessages(
         r.role === "system",
     )
     .map((row) => {
-      const tc = row.toolCalls as { citations?: Citation[] } | null;
+      const tc = row.toolCalls as
+        | { citations?: Citation[]; reports?: StoredReport[] }
+        | null;
       return {
         id: row.id,
         conversationId: row.conversationId,
         role: row.role,
         content: row.content as { text: string },
         citations: tc?.citations,
+        reports: tc?.reports,
         createdAt: row.createdAt,
       };
     });

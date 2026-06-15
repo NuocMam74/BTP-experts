@@ -131,7 +131,7 @@ export const reports = sqliteTable("reports", {
   ),
   agentSlug: text("agent_slug").references(() => agents.slug),
   format: text("format", {
-    enum: ["md", "docx", "xlsx", "pdf", "pptx"],
+    enum: ["md", "docx", "xlsx", "pdf", "pptx", "png", "jpg"],
   }).notNull(),
   title: text("title").notNull(),
   filename: text("filename").notNull(),

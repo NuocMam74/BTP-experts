@@ -34,6 +34,33 @@ type Message = {
   // becomes known via persistedId; history-loaded messages already carry it as
   // `id`. Lets feedback target the right durable id without a 404.
   fresh?: boolean;
+  // Downloadable deliverables produced this turn (generer_rapport,
+  // modifier_document, annoter_image, remplir_formulaire_pdf). Rendered as a
+  // preview card with a download button, like an artifact panel.
+  reports?: ReportCard[];
+};
+
+// Structured content of a generated document, captured from the tool-call input
+// so the chat can preview it before download (doc generators only).
+type ReportPreviewPayload = {
+  title?: string;
+  subtitle?: string;
+  sections?: { heading?: string; body_markdown?: string }[];
+  tables?: { name?: string; columns?: string[]; rows?: (string | number | boolean | null)[][] }[];
+  slides?: { title?: string; bullets?: string[] }[];
+};
+
+type ReportCard = {
+  toolId: string;
+  tool: string;
+  format?: string;
+  filename?: string;
+  downloadUrl?: string;
+  // Present for doc generators (preview rendered from the content); absent for
+  // binary outputs (annotated image / filled PDF) which preview the file itself.
+  // Typed `unknown` because it round-trips through the DB (persisted previews);
+  // narrowed to ReportPreviewPayload at render time.
+  payload?: unknown;
 };
 
 function formatTime(iso?: string): string {
@@ -100,12 +127,26 @@ function skillActionText(label: string): string {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
+// Tools whose result is a downloadable deliverable shown as a preview card.
+const REPORT_TOOLS = new Set([
+  "generer_rapport",
+  "modifier_document",
+  "annoter_image",
+  "remplir_formulaire_pdf",
+]);
+
 function toolLabel(name: string): string {
   switch (name) {
     case "rag_search":
       return "Recherche dans le corpus normatif";
     case "generer_rapport":
       return "Génération du livrable";
+    case "modifier_document":
+      return "Modification du document";
+    case "annoter_image":
+      return "Annotation du plan / de l'image";
+    case "remplir_formulaire_pdf":
+      return "Remplissage du formulaire PDF";
     case "calc_surfaces":
       return "Calcul de surfaces";
     case "calculer_cubatures":
@@ -225,6 +266,21 @@ const CHAT_MARKDOWN_COMPONENTS: Components = {
       {children}
     </a>
   ),
+  // Render images (e.g. annotated plans returned by `annoter_image`) in a bounded,
+  // bordered frame that opens full-size in a new tab when clicked.
+  img: ({ node: _n, src, alt, ...props }) =>
+    typeof src === "string" && src.length > 0 ? (
+      <a href={src} target="_blank" rel="noopener noreferrer">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt ?? "image"}
+          loading="lazy"
+          className="my-2 max-h-[28rem] w-auto max-w-full rounded-lg border border-border"
+          {...props}
+        />
+      </a>
+    ) : null,
   // Intercept ```chart fenced blocks and render them as an SVG chart. Any other
   // fenced/code block falls through to the default <pre>.
   pre: ({ node, children, ...props }) => {
@@ -556,7 +612,7 @@ export function ChatUI({
             );
           }
         } else if (event === "tool-call") {
-          const d = data as { id: string; name: string };
+          const d = data as { id: string; name: string; input?: unknown };
           setMessages((prev) =>
             prev.map((m) => {
               if (m.id !== assistantId) return m;
@@ -569,11 +625,36 @@ export function ChatUI({
                   status: "running",
                 });
               }
-              return { ...m, activeTools };
+              // Pre-create a preview card for tools that ALWAYS yield a file
+              // (skip remplir_formulaire_pdf, whose listing step has no download).
+              // Capture the doc generator's structured payload (sent non-null with
+              // the full tool-call event) so we can preview its content live.
+              let reports = m.reports;
+              const wantsPayload =
+                d.name === "generer_rapport" || d.name === "modifier_document";
+              const preCreate = wantsPayload || d.name === "annoter_image";
+              if (preCreate) {
+                reports = [...(m.reports ?? [])];
+                const idx = reports.findIndex((r) => r.toolId === d.id);
+                const payload =
+                  wantsPayload && d.input && typeof d.input === "object"
+                    ? (d.input as ReportPreviewPayload)
+                    : idx >= 0
+                      ? reports[idx]!.payload
+                      : undefined;
+                const card: ReportCard = { toolId: d.id, tool: d.name, payload };
+                if (idx >= 0) reports[idx] = { ...reports[idx]!, ...card };
+                else reports.push(card);
+              }
+              return { ...m, activeTools, reports };
             }),
           );
         } else if (event === "tool-result") {
-          const d = data as { id: string; citations?: Citation[] };
+          const d = data as {
+            id: string;
+            citations?: Citation[];
+            report?: { download_url: string; filename: string; format: string } | null;
+          };
           setMessages((prev) =>
             prev.map((m) => {
               if (m.id !== assistantId) return m;
@@ -589,7 +670,24 @@ export function ChatUI({
                 seen.add(k);
                 return true;
               });
-              return { ...m, activeTools, citations: deduped };
+              // Attach the real download info to the matching card, or — when the
+              // result carries no file (form-field listing, or a failed tool) —
+              // drop any stuck "preparing…" card for this call.
+              let reports = m.reports;
+              if (d.report) {
+                reports = [...(m.reports ?? [])];
+                const idx = reports.findIndex((r) => r.toolId === d.id);
+                const patch = {
+                  downloadUrl: d.report.download_url,
+                  filename: d.report.filename,
+                  format: d.report.format,
+                };
+                if (idx >= 0) reports[idx] = { ...reports[idx]!, ...patch };
+                else reports.push({ toolId: d.id, tool: "", ...patch });
+              } else if (m.reports?.some((r) => r.toolId === d.id && !r.downloadUrl)) {
+                reports = m.reports.filter((r) => !(r.toolId === d.id && !r.downloadUrl));
+              }
+              return { ...m, activeTools, citations: deduped, reports };
             }),
           );
         } else if (event === "done") {
@@ -1735,6 +1833,108 @@ function ConversationsSidebar({
   );
 }
 
+// Builds a Markdown preview from a doc generator's structured payload so the
+// chat can render the deliverable's content inline (same renderer as messages).
+function reportPayloadToMarkdown(p: ReportPreviewPayload): string {
+  const out: string[] = [];
+  if (p.title) out.push(`# ${p.title}`);
+  if (p.subtitle) out.push(`_${p.subtitle}_`);
+  for (const s of p.sections ?? []) {
+    if (s.heading) out.push(`\n## ${s.heading}`);
+    if (s.body_markdown) out.push(s.body_markdown);
+  }
+  for (const t of p.tables ?? []) {
+    const cols = t.columns ?? [];
+    if (t.name) out.push(`\n### ${t.name}`);
+    if (cols.length > 0) {
+      out.push(`| ${cols.join(" | ")} |`);
+      out.push(`|${cols.map(() => "---").join("|")}|`);
+      for (const row of t.rows ?? []) {
+        out.push(`| ${row.map((c) => (c == null ? "" : String(c))).join(" | ")} |`);
+      }
+    }
+  }
+  for (const s of p.slides ?? []) {
+    if (s.title) out.push(`\n## ${s.title}`);
+    for (const b of s.bullets ?? []) out.push(`- ${b}`);
+  }
+  return out.join("\n");
+}
+
+function formatBadge(format?: string): string {
+  return (format ?? "").toUpperCase() || "DOC";
+}
+
+// Artifact-style card: a header with the filename + download button, and an
+// expandable preview of the deliverable (rendered content for documents, the
+// image for annotated plans, an embedded PDF for annotated/filled PDFs).
+function ReportPreviewCard({ report }: { report: ReportCard }) {
+  const [open, setOpen] = useState(true);
+  const ready = Boolean(report.downloadUrl);
+  const fmt = report.format ?? "";
+  const isImage = fmt === "png" || fmt === "jpg";
+  const isPdfFile = fmt === "pdf" && !report.payload;
+  const previewMd = report.payload
+    ? reportPayloadToMarkdown(report.payload as ReportPreviewPayload)
+    : "";
+
+  return (
+    <div className="mt-2 overflow-hidden rounded-xl border border-border bg-surface/70">
+      <div className="flex items-center gap-2 border-b border-border/70 bg-surface px-3 py-2">
+        <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-brand-200">
+          {formatBadge(report.format)}
+        </span>
+        <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground">
+          {ready ? report.filename : "Préparation du document…"}
+        </span>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="rounded px-1.5 py-0.5 text-[11px] text-muted-foreground hover:text-foreground"
+        >
+          {open ? "Masquer" : "Aperçu"}
+        </button>
+        {ready && (
+          <a
+            href={report.downloadUrl}
+            download={report.filename}
+            className="flex items-center gap-1 rounded-md bg-brand-500/20 px-2 py-1 text-[11px] font-semibold text-brand-100 hover:bg-brand-500/30"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            Télécharger
+          </a>
+        )}
+      </div>
+      {open && (
+        <div className="max-h-[26rem] overflow-auto p-3">
+          {!ready && !previewMd ? (
+            <div className="py-6 text-center text-xs text-muted-foreground">Génération en cours…</div>
+          ) : isImage && ready ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={report.downloadUrl} alt={report.filename ?? "aperçu"} className="mx-auto max-h-[24rem] w-auto max-w-full rounded-md border border-border" />
+          ) : isPdfFile && ready ? (
+            <iframe src={`${report.downloadUrl}?preview=1`} title={report.filename ?? "PDF"} className="h-[24rem] w-full rounded-md border border-border bg-white" />
+          ) : previewMd ? (
+            <div className="prose-chat">
+              <ReactMarkdown
+                remarkPlugins={CHAT_REMARK_PLUGINS}
+                rehypePlugins={CHAT_REHYPE_PLUGINS}
+                components={CHAT_MARKDOWN_COMPONENTS}
+              >
+                {repairMarkdownTables(normalizeMathDelimiters(previewMd))}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <div className="py-6 text-center text-xs text-muted-foreground">Aperçu indisponible — utilise le bouton Télécharger.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MessageBubble({
   message,
   agentName,
@@ -1890,9 +2090,23 @@ function MessageBubble({
           {hasActiveTools && (
             <div className="mb-2 space-y-1.5">
               {message.activeTools!.map((t) => {
-                // Document generation is the long one — show a prominent, reassuring
-                // loading card so the user doesn't think the app froze/crashed.
-                if (t.name === "generer_rapport" && t.status === "running") {
+                // Document generation / modification / annotation are the long
+                // ones — show a prominent, reassuring loading card so the user
+                // doesn't think the app froze/crashed.
+                const isLongDocTool =
+                  t.name === "generer_rapport" ||
+                  t.name === "modifier_document" ||
+                  t.name === "annoter_image" ||
+                  t.name === "remplir_formulaire_pdf";
+                if (isLongDocTool && t.status === "running") {
+                  const cardTitle =
+                    t.name === "annoter_image"
+                      ? "Annotation du plan en cours…"
+                      : t.name === "modifier_document"
+                        ? "Modification du document en cours…"
+                        : t.name === "remplir_formulaire_pdf"
+                          ? "Remplissage du formulaire en cours…"
+                          : "Génération du document en cours…";
                   return (
                     <div
                       key={t.id}
@@ -1902,7 +2116,7 @@ function MessageBubble({
                         <path d="M21 12a9 9 0 1 1-6.219-8.56" strokeLinecap="round" />
                       </svg>
                       <div className="min-w-0">
-                        <div className="font-semibold">Génération du document en cours…</div>
+                        <div className="font-semibold">{cardTitle}</div>
                         <div className="opacity-80">
                           Mise en forme du livrable — cela peut prendre un moment, ne ferme pas la page.
                         </div>
@@ -1941,6 +2155,13 @@ function MessageBubble({
             <TypingIndicator color={accentColor} />
           ) : null}
         </div>
+        {message.reports && message.reports.length > 0 && (
+          <div className="space-y-2">
+            {message.reports.map((r) => (
+              <ReportPreviewCard key={r.toolId} report={r} />
+            ))}
+          </div>
+        )}
         {message.citations && message.citations.length > 0 && (
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
             <span className="font-semibold uppercase tracking-wider">Sources :</span>

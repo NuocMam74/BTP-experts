@@ -5,12 +5,12 @@ import fs from "node:fs/promises";
 import { auth } from "@/auth";
 import { db, schema } from "@/lib/db/client";
 import { getMimeType } from "@/lib/reports";
-import type { ReportFormat } from "@/lib/reports/types";
+import type { ArtifactFormat } from "@/lib/reports/types";
 
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { id: string } },
 ) {
   const session = await auth();
@@ -43,11 +43,22 @@ export async function GET(
 
   const safeFilename = encodeURIComponent(report.filename);
 
+  // Image artifacts (annotated plans) are served inline so the chat can preview
+  // them directly via Markdown `![…](/api/reports/<id>)`. Document formats keep
+  // the attachment disposition to force a download — UNLESS `?preview=1`, used by
+  // the in-chat preview card to render a PDF inside an <iframe>.
+  const format = report.format as ArtifactFormat;
+  const isImage = format === "png" || format === "jpg";
+  const previewMode = new URL(req.url).searchParams.get("preview") === "1";
+  const inlineForPreview = previewMode && (format === "pdf" || isImage);
+  const disposition = isImage || inlineForPreview ? "inline" : "attachment";
+
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
-      "Content-Type": getMimeType(report.format as ReportFormat),
+      "Content-Type": getMimeType(format),
       "Content-Length": String(buffer.length),
-      "Content-Disposition": `attachment; filename="${safeFilename}"`,
+      "Content-Disposition": `${disposition}; filename="${safeFilename}"`,
+      "X-Content-Type-Options": "nosniff",
       "Cache-Control": "private, no-store",
     },
   });

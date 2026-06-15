@@ -7,9 +7,17 @@ import { withSentryConfig } from "@sentry/nextjs";
 // connect-src 'self' is enough — the browser only talks to our own API (the IGN
 // PLU calls happen server-side). If something legitimate gets blocked, relax the
 // specific directive here (or remove this header) rather than disabling all CSP.
+//
+// 'unsafe-eval' is added in DEV only: `next dev` evaluates client modules via
+// eval() (webpack HMR), and a CSP without 'unsafe-eval' blocks the whole client
+// bundle → React never hydrates → no onClick/interactivity. Production builds do
+// not use eval, so the policy stays strict there.
+const isDev = process.env.NODE_ENV !== "production";
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",

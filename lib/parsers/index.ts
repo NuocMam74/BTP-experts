@@ -1,4 +1,5 @@
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import mammoth from "mammoth";
 
 import { logger } from "@/lib/logger";
@@ -19,6 +20,10 @@ export type ParsedKind =
   | "xlsx"
   | "csv"
   | "json"
+  | "pptx"
+  | "odt"
+  | "ods"
+  | "rtf"
   | "image"
   | "unknown";
 
@@ -120,6 +125,61 @@ export async function parseAttachment(
     }
   }
 
+  // PPTX (PowerPoint) — read slide texts from the OOXML zip.
+  if (
+    ext === ".pptx" ||
+    mimeType ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+  ) {
+    try {
+      const text = await parsePptx(buffer);
+      return { text, pages: null, kind: "pptx" };
+    } catch (err) {
+      logger.warn({ filename, err }, "pptx parse failed");
+      return { text: null, pages: null, kind: "pptx" };
+    }
+  }
+
+  // ODT / ODP (OpenDocument text/presentation) — text from content.xml.
+  if (
+    ext === ".odt" ||
+    ext === ".odp" ||
+    mimeType === "application/vnd.oasis.opendocument.text" ||
+    mimeType === "application/vnd.oasis.opendocument.presentation"
+  ) {
+    try {
+      const text = await parseOpenDocument(buffer);
+      return { text, pages: null, kind: "odt" };
+    } catch (err) {
+      logger.warn({ filename, err }, "odt parse failed");
+      return { text: null, pages: null, kind: "odt" };
+    }
+  }
+
+  // ODS (OpenDocument spreadsheet) — cell text from content.xml.
+  if (
+    ext === ".ods" ||
+    mimeType === "application/vnd.oasis.opendocument.spreadsheet"
+  ) {
+    try {
+      const text = await parseOpenDocument(buffer);
+      return { text, pages: null, kind: "ods" };
+    } catch (err) {
+      logger.warn({ filename, err }, "ods parse failed");
+      return { text: null, pages: null, kind: "ods" };
+    }
+  }
+
+  // RTF — strip control words to recover plain text.
+  if (ext === ".rtf" || mimeType === "application/rtf" || mimeType === "text/rtf") {
+    try {
+      return { text: parseRtf(buffer.toString("latin1")), pages: null, kind: "rtf" };
+    } catch (err) {
+      logger.warn({ filename, err }, "rtf parse failed");
+      return { text: null, pages: null, kind: "rtf" };
+    }
+  }
+
   // CSV (parsing simple)
   if (ext === ".csv" || mimeType === "text/csv") {
     const text = buffer.toString("utf8");
@@ -163,9 +223,86 @@ export function describeKind(kind: ParsedKind): string {
       return "JSON";
     case "text":
       return "Texte";
+    case "pptx":
+      return "PowerPoint";
+    case "odt":
+      return "OpenDocument";
+    case "ods":
+      return "OpenDocument (tableur)";
+    case "rtf":
+      return "RTF";
     case "image":
       return "Image (non lue automatiquement)";
     case "unknown":
       return "Document (parsing non disponible)";
   }
+}
+
+// Decode the 5 predefined XML entities found in OOXML/ODF text nodes.
+function decodeXmlEntities(s: string): string {
+  return s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+// PPTX: concatenate the <a:t> runs of every slide, slide by slide (ordered).
+async function parsePptx(buffer: Buffer): Promise<string | null> {
+  const zip = await JSZip.loadAsync(buffer);
+  const slidePaths = Object.keys(zip.files)
+    .filter((p) => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+    .sort((a, b) => {
+      const na = Number(a.match(/slide(\d+)\.xml$/)?.[1] ?? 0);
+      const nb = Number(b.match(/slide(\d+)\.xml$/)?.[1] ?? 0);
+      return na - nb;
+    });
+  const parts: string[] = [];
+  for (let i = 0; i < slidePaths.length; i++) {
+    const xml = await zip.file(slidePaths[i]!)!.async("string");
+    const runs = [...xml.matchAll(/<a:t>([\s\S]*?)<\/a:t>/g)].map((m) =>
+      decodeXmlEntities(m[1]!),
+    );
+    if (runs.length > 0) {
+      parts.push(`## Diapositive ${i + 1}`, runs.join("\n"), "");
+    }
+  }
+  const text = parts.join("\n").trim();
+  return text.length > 0 ? text : null;
+}
+
+// ODF (odt/odp/ods): pull text from content.xml. Tags are stripped, with a
+// newline emitted at paragraph / table-row boundaries so structure survives.
+async function parseOpenDocument(buffer: Buffer): Promise<string | null> {
+  const zip = await JSZip.loadAsync(buffer);
+  const entry = zip.file("content.xml");
+  if (!entry) return null;
+  const xml = await entry.async("string");
+  const withBreaks = xml
+    .replace(/<\/text:p>/g, "\n")
+    .replace(/<\/text:h>/g, "\n")
+    .replace(/<\/table:table-row>/g, "\n")
+    .replace(/<text:tab\/>/g, "\t")
+    .replace(/<table:table-cell[^>]*>/g, " ");
+  const stripped = withBreaks.replace(/<[^>]+>/g, "");
+  const text = decodeXmlEntities(stripped)
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text.length > 0 ? text : null;
+}
+
+// RTF: minimal de-tokenizer — drop groups/control words, keep text + escaped
+// chars. Good enough to recover the prose for the model to work from.
+function parseRtf(rtf: string): string | null {
+  let s = rtf
+    .replace(/\\'[0-9a-fA-F]{2}/g, " ") // hex-escaped bytes → space (lossy but safe)
+    .replace(/\\par[d]?\b/g, "\n")
+    .replace(/\\tab\b/g, "\t")
+    .replace(/\\[a-zA-Z]+-?\d* ?/g, "") // control words
+    .replace(/[{}]/g, "")
+    .replace(/\\\*/g, "");
+  s = s.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+  return s.length > 0 ? s : null;
 }

@@ -34,6 +34,14 @@ export default async function ChatPage({
     role: "user" | "assistant";
     content: string;
     citations?: Array<{ source_ref: string; source_url: string | null }>;
+    reports?: Array<{
+      toolId: string;
+      tool: string;
+      format?: string;
+      filename?: string;
+      downloadUrl?: string;
+      payload?: unknown;
+    }>;
     createdAt?: string;
   }> = [];
   let initialConversationId: string | null = null;
@@ -62,6 +70,7 @@ export default async function ChatPage({
           role: m.role as "user" | "assistant",
           content: m.content.text,
           citations: m.citations,
+          reports: m.reports,
           createdAt: m.createdAt.toISOString(),
         }));
       const conv = await db.query.conversations.findFirst({

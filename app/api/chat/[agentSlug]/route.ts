@@ -16,6 +16,7 @@ import {
   loadConversationMessages,
   persistMessage,
   toModelMessages,
+  type StoredReport,
 } from "@/lib/db/messages";
 import { logger } from "@/lib/logger";
 import { checkRateLimit, clientIp } from "@/lib/rate-limit";
@@ -239,7 +240,13 @@ export async function POST(
               sizeBytes?: number;
             };
             const kindLabel = meta.kind ?? "unknown";
-            const headerInfo: string[] = [doc.filename, `type: ${kindLabel}`];
+            // `id:` is surfaced so the model can target this exact document when
+            // calling modifier_document / annoter_image.
+            const headerInfo: string[] = [
+              doc.filename,
+              `id: ${doc.id}`,
+              `type: ${kindLabel}`,
+            ];
             if (meta.pages) headerInfo.push(`${meta.pages} page(s)/feuille(s)`);
             if (meta.sizeBytes)
               headerInfo.push(`${Math.round(meta.sizeBytes / 1024)} ko`);
@@ -276,6 +283,10 @@ export async function POST(
   // fabricates a "/api/reports/<uuid>" download link without actually calling the
   // tool, which 404s. We only trust links that correspond to a real generation.
   const generatedReports: GeneratedReportRef[] = [];
+  // Report preview cards built across the turn (payload captured on tool-call,
+  // download info on tool-result), keyed by tool call id. Persisted with the
+  // assistant message so the preview survives a reload.
+  const reportCardsById = new Map<string, StoredReport>();
   let assistantText = "";
   let persisted = false;
   // Durable id of the persisted assistant message — sent to the client in the
@@ -295,10 +306,20 @@ export async function POST(
       text: assistantText,
     });
     assistantMessageId = id;
-    if (aggregatedCitations.length > 0) {
+    // Only keep cards that actually produced a downloadable file (drop listing
+    // steps / failures).
+    const persistedReports = [...reportCardsById.values()].filter(
+      (r) => typeof r.downloadUrl === "string" && r.downloadUrl.length > 0,
+    );
+    if (aggregatedCitations.length > 0 || persistedReports.length > 0) {
       await db
         .update(schema.messages)
-        .set({ toolCalls: { citations: aggregatedCitations } })
+        .set({
+          toolCalls: {
+            ...(aggregatedCitations.length > 0 ? { citations: aggregatedCitations } : {}),
+            ...(persistedReports.length > 0 ? { reports: persistedReports } : {}),
+          },
+        })
         .where(eq(schema.messages.id, id));
     }
   }
@@ -401,6 +422,19 @@ export async function POST(
                 toolName?: string;
                 input?: unknown;
               };
+              // Capture the doc generator's structured payload for the preview.
+              if (
+                p.toolCallId &&
+                (p.toolName === "generer_rapport" || p.toolName === "modifier_document") &&
+                p.input &&
+                typeof p.input === "object"
+              ) {
+                const prev = reportCardsById.get(p.toolCallId) ?? {
+                  toolId: p.toolCallId,
+                  tool: p.toolName,
+                };
+                reportCardsById.set(p.toolCallId, { ...prev, tool: p.toolName, payload: p.input });
+              }
               safeEnqueue(
                 sseEncode("tool-call", {
                   id: p.toolCallId,
@@ -422,11 +456,29 @@ export async function POST(
               }
               const report = extractReport(p.toolName, p.output);
               if (report) generatedReports.push(report);
+              const card = extractReportCard(p.toolName, p.output);
+              if (card && p.toolCallId) {
+                const prev = reportCardsById.get(p.toolCallId) ?? {
+                  toolId: p.toolCallId,
+                  tool: p.toolName ?? "",
+                };
+                reportCardsById.set(p.toolCallId, {
+                  ...prev,
+                  tool: p.toolName ?? prev.tool,
+                  format: card.format,
+                  filename: card.filename,
+                  downloadUrl: card.download_url,
+                });
+              }
               safeEnqueue(
                 sseEncode("tool-result", {
                   id: p.toolCallId,
                   name: p.toolName,
                   citations,
+                  // Download info for the in-chat preview card (null when the
+                  // tool produced no downloadable file, e.g. the form-field
+                  // listing step or a calculation tool).
+                  report: card,
                 }),
               );
               break;
@@ -560,12 +612,25 @@ function attachImagesToLastUserMessage(
 
 type GeneratedReportRef = { url: string; filename: string };
 
-// Pull the real download URL out of a `generer_rapport` tool result.
+// Pull the real download URL out of any tool result that produces a downloadable
+// artifact under /api/reports/<id> (generer_rapport, modifier_document,
+// annoter_image). Used to reconcile fabricated download links in the answer.
+const REPORT_PRODUCING_TOOLS = new Set([
+  "generer_rapport",
+  "modifier_document",
+  "annoter_image",
+  "remplir_formulaire_pdf",
+]);
 function extractReport(
   toolName: string | undefined,
   output: unknown,
 ): GeneratedReportRef | null {
-  if (toolName !== "generer_rapport" || !output || typeof output !== "object") {
+  if (
+    !toolName ||
+    !REPORT_PRODUCING_TOOLS.has(toolName) ||
+    !output ||
+    typeof output !== "object"
+  ) {
     return null;
   }
   const o = output as { download_url?: unknown; filename?: unknown };
@@ -575,6 +640,36 @@ function extractReport(
   return {
     url: o.download_url,
     filename: typeof o.filename === "string" ? o.filename : "document",
+  };
+}
+
+type ReportCardData = {
+  download_url: string;
+  filename: string;
+  format: string;
+};
+
+// Builds the preview-card payload sent to the client for a report-producing
+// tool result. Returns null for outputs without a real download (listing steps,
+// failures, non-report tools).
+function extractReportCard(
+  toolName: string | undefined,
+  output: unknown,
+): ReportCardData | null {
+  if (!toolName || !REPORT_PRODUCING_TOOLS.has(toolName)) return null;
+  if (!output || typeof output !== "object") return null;
+  const o = output as {
+    download_url?: unknown;
+    filename?: unknown;
+    format?: unknown;
+    success?: unknown;
+  };
+  if (o.success === false) return null;
+  if (typeof o.download_url !== "string" || o.download_url.length === 0) return null;
+  return {
+    download_url: o.download_url,
+    filename: typeof o.filename === "string" ? o.filename : "document",
+    format: typeof o.format === "string" ? o.format : "",
   };
 }
 

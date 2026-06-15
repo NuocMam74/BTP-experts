@@ -12,6 +12,35 @@ export async function parsePdfBuffer(buffer: Buffer): Promise<{
   return { text, pages: totalPages };
 }
 
+// Renders a SINGLE PDF page (1-indexed) to a raw PNG buffer. Used by the image
+// annotation pipeline, which needs to raster a plan delivered as a PDF before
+// drawing on it. Returns null if the page is out of range or rendering fails.
+export async function renderPdfPageToPngBuffer(
+  buffer: Buffer,
+  pageNumber = 1,
+  scale = 2,
+): Promise<Buffer | null> {
+  const { renderPageAsImage, getDocumentProxy: getProxy } = await import("unpdf");
+  const proxy = await getProxy(Uint8Array.from(buffer));
+  if (pageNumber < 1 || pageNumber > proxy.numPages) return null;
+  try {
+    const render = renderPageAsImage as unknown as (
+      data: Uint8Array,
+      page: number,
+      opts: Record<string, unknown>,
+    ) => Promise<ArrayBuffer | Uint8Array>;
+    const png = await render(Uint8Array.from(buffer), pageNumber, {
+      scale,
+      canvasImport: () => import("@napi-rs/canvas"),
+    });
+    const bytes = png instanceof Uint8Array ? png : new Uint8Array(png);
+    return Buffer.from(bytes);
+  } catch (err) {
+    logger.warn({ pageNumber, err }, "pdf single-page render failed");
+    return null;
+  }
+}
+
 // Renders the first `maxPages` pages of a PDF to PNG data-URLs so a vision model
 // can "see" them. Used for plans/scans that carry no extractable text.
 // Uses @napi-rs/canvas (prebuilt, no native build step) as the canvas backend.

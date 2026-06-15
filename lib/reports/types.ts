@@ -3,6 +3,21 @@ import { z } from "zod";
 export const reportFormatSchema = z.enum(["md", "docx", "xlsx", "pdf", "pptx"]);
 export type ReportFormat = z.infer<typeof reportFormatSchema>;
 
+// Binary artifacts (e.g. annotated plans/images produced by `annoter_image`)
+// reuse the reports storage + download layer but are NOT produced by the
+// section/table/slide generators — they are written as raw bytes. The artifact
+// format is therefore a superset of the generated report formats.
+export const artifactFormatSchema = z.enum([
+  "md",
+  "docx",
+  "xlsx",
+  "pdf",
+  "pptx",
+  "png",
+  "jpg",
+]);
+export type ArtifactFormat = z.infer<typeof artifactFormatSchema>;
+
 export const sectionSchema = z.object({
   heading: z
     .string()
